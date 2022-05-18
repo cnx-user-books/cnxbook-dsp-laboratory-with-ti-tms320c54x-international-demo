@@ -1,0 +1,257 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>FIR Filtering: Exercise for TI TMS320C54x (Thai Version)</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>31124b36-77fc-44fc-8e1c-51a946b1aaed</md:uuid>
+</metadata>
+
+
+
+
+  <content>
+    <section id="sec1">
+      <title>Introduction</title>
+      <para id="para1a">
+	ในแบบผึกหัดนี้ จะสอนวิธีการเขียน FIR filter โดยการใช้ภาษาแอสแซมบลีของ DSP  เริ่มต้นจากแอสแซมบลีพื้นฐานที่ใช้เขียน FIR filter จากไฟล์  <link document="m10017" resource="filter.asm">filter.asm</link>.
+      </para>
+      <code id="fig1" display="block" class="listing"><title>filter.asm</title>
+	   1	.copy "core.asm"  	; Copy in core file
+	  2   					; This initializes DSP and jumps to "main"
+	  3	
+	  4  FIR_len .set   8			; This is an 8-tap filter.
+	  5	
+	  6          .sect ".data"		; Flag following as data declarations
+	  7   
+	  8    	    .align 16			; Align to a multiple of 16
+	  9  coef					; assign label "coeff"
+	  10	    .copy "coef.asm"		; Copy in coefficients
+	  11
+	  12	    .align 16
+	  13 firstate
+	  14 	    .space 16*8			; Allocate 8 words of storage for
+	  15					; filter state.
+	  16
+	  17	    .sect ".text"		; Flag the following as program code
+	  18  main
+	  19      ; Initialize various pointers
+	  20	    stm    #FIR_len,BK		; initialize circular buffer length
+	  21	    stm    #coef,AR2    	; initialize coefficient pointer
+	  22	    stm	   #firstate,AR3	; initialize state pointer
+	  23	    stm    #1,AR0		; initialize AR0 for pointer increment
+	  24	
+	  25  loop
+	  26      ; Wait for a new block of 64 samples to come in
+	  27  	    WAITDATA
+	  28	
+	  29      ; BlockLen = the number of samples that come from WAITDATA (64)
+	  30    	    stm     #BlockLen-1, BRC	; Put repeat count into repeat counter
+	  31    	    rptb    endblock-1		; Repeat between here and 'endblock' 
+	  32
+	  33    	    ld	    *AR6,16, A		; Receive ch1 into A accumulator
+	  34    	    mar     *+AR6(2)            ; Rcv data is in every other channel
+	  35    	    ld      *AR6,16, B		; Receive ch2 into B accumulator
+	  36    	    mar     *+AR6(2)            ; Rcv data is in every other channel
+	  37    
+	  38    	    ld	    A,B			; Transfer A into B for safekeeping
+	  39
+	  40      ; The following code executes a single FIR filter.
+	  41	
+	  42    	    sth     A,*AR3+%		; store current input into state buffer
+	  43    	    rptz    A,(FIR_len-1)	; clear A and repeat
+	  44    	    mac     *AR2+0%,*AR3+0%,A	; multiply coef. by state &amp; accumulate
+	  45    
+	  46    	    rnd     A			; Round off value in 'A' to 16 bits                            
+	  47    
+	  48     ; end of FIR filter code. Output is in the high part of 'A.'
+	  49
+	  50    	    sth     A, *AR7+		; Store filter output (from A) into ch1
+	  51    	    sth     B, *AR7+		; Store saved input (from B) into ch2
+	  52    
+	  53    	    sth     B, *AR7+		; Store saved input to ch3...ch6 also
+	  54    	    sth     B, *AR7+		; ch4
+	  55    	    sth     B, *AR7+		; ch5 
+	  56    	    sth     B, *AR7+		; ch6
+	  57   
+	  58  endblock:
+	  59      b loop
+	</code>
+      <para id="p1">
+	<code>filter.asm</code> จะทำการใช้ FIR filter กับอินพุต channel ที่ 1 แล้วทำการส่งผลลัพธ์ที่ได้ไปยัง channel ที่ 1 พร้อมกับส่ง อินพุตที่ไปยัง channel ที่ 2
+      </para>
+      <para id="p2">
+	ลำดับแรก  สร้าง workin directory ของคุณขึ้นที่ network  drive สำหรับไฟล์ที่จะใช้ในแบบฝึกหัดนี้ จากนั้นทำการ copy <link document="m10017" resource="filter.asm">filter.asm</link>
+	และ  <link document="m10017" resource="core.asm">core.asm</link>
+	ไปไว้ใน directory ที่สร้างขึ้น เสร็จแล้วให้ใช้ MATLAB สร้าง  20-tap FIR
+	filter  2 อัน filter ตัวแรก ควรผ่านสัญญาณที่มีความถี่ ตั้งแต่  4 kHz ถึง 8 kHz; ส่วน filter ตัวที่สอง ให้ ผ่านสัญญาณความถี่ 8 kHz ถึง 12 kHz 
+	สำหรับ filter ทั้งสอตัว ให้ใช้ 1 kHz transition band ที่ทุกริมของ filter passband ในการสร้าง filter พวกนี้ ควรจะแปลง band edge ให้เป็น
+	สัญญาณดิจิตอล โดยเทียบจาก 44.1 kHz
+	sample rate ของระบบ จากนั้นให้ใช้คำสั่ง MATLAB
+	<code>remez</code> ในการสร้าง filter; อาจลองพิมพ์
+	<code>help remez</code> สำหรับ รายละเอียดของการใช้คำสั่ง  และใช้คำสั่ง
+	<code>save_coef</code>save filter แต่ละตัวคนละไฟล์ (ตรวจดูก่อน save ว่าได้ทำการกลับเวคเตอร์ ของ filter coef เรียบร้อยแล้ว)
+	ทำการ save filter ในรูปของ MATLAB matrix ด้วย เพราะคุณจะต้องใช้มันภายหลังในการสร้าง test เวคเตอร์
+                     สารมารถทำได้โดย ใช้คำสั่ง  	<code>save</code> ใน MATLAB
+	เมื่อเสร็จเรียบร้อยแล้ว ให้ใช้คำสั่ง 	<code>freqz</code> 
+	ในการสร้าง frequency response ให้แต่ละ filter
+      </para>
+    </section>
+    <section id="sec2">
+      <title>Part 1: Single-Channel FIR Filter</title>
+      <para id="p3">
+	สำหรับตอนนี้คุณจะทำการ implement แค่ filter ที่ใช้ 4 kHz ถึง 8
+	kHz passband เท่านั้น. แก้ไข  <code>filter.asm</code> เพื่อใช้ coefficient สำหรับ filter ตัวนี้
+      </para>
+      <para id="p4">
+	อย่างแรก เราจะใช้ FIR filter ขนาด 20 ไม่ใช่ 8 ในแบบฝึกหัดนี้
+	ฉะนั้นคุณจะต้องเปลี่ยน  <code>FIR_len</code> เป็น
+	20. <code>FIR_len</code> โดยใช้ directive  <code>.set</code>
+	ซึ่งสามารถ set ค่า ได้โดย assign ค่าตัวเลขให้  <code>FIR_len .set 20</code>.
+      </para>
+      <para id="p5">
+	ขั้นที่สอง, คุณจะต้องแน่ใจว่า  <code>.copy</code>
+	directive copy ค่า coefficients ที่ถูกต้อง. เปลี่ยนชื่อไฟล์ เป็นชื่อไฟล์ที่เก็บค่า
+	ของ coefficients ที่ใช้สำหรับ filter ตัวแรก
+      </para>
+      <para id="p6">
+	จากนั้นให้ทำการแก้ไข <code>.align</code> และ
+	<code>.space</code> directives ต่างๆ ตามความเหมาะสม.  TI
+	TMS320C54x DSP ต้องใช้ circular buffers, เพื่อใช้สำหรับ 
+	 FIR filter coefficient และ state buffers, ซึ่งถูก set ให้ตรงกัน
+	โดยให้ address เริ่มต้น เป็นค่ายกำลังสอง
+	so that they begin at an address that is a multiple of a power
+	of two greater than the length of the buffer. Since you are
+	using a 20-tap filter (ซึ่งใช้ 20-element state และ
+	coefficient บัฟเฟอร์), the next greater power of two is 32.
+	ฉะนั้นคุณจะต้องทำการตั้งค่า address ของทั้ง state และ coefficient
+	บัฟเฟอร์ เป็นจำนวนเท่าของ 32
+	(16-element บัฟเฟอร์จะต้องถูกตั้งค่าให้เป็นจำนวนเท่าของ 32 เช่นกัน)
+	ซึ่งสามารถทำได้โดยใช้คำสั่ง <code>.align</code> นอกจากนี้หน่วยความจำยัง
+	ต้องถูกจองไว้ให้ state บัฟเฟอร์ด้วย ทำได้ โดยใช้ directive
+	 <code>.space</code> ซึ่งจะรับจำนวน  <emphasis>bits</emphasis> 
+	ของเนื้อที่ทที่ต้องการ . ฉะนั้นถ้าต้องการ เนื้อที่ 20 word จะต้องใช้
+	directive <code>.space 16*20</code> ดังตัวอย่างข้างใต้
+      </para>
+      <code display="block" id="idp7222064">
+	1         .align 32             % Align to a multiple of 32
+	2  coef   .copy  "filter1.asm"  % Copy FIR filter coefficients
+	3
+	4         .align 32             % Align to a multiple of 32
+	5  state  .space 16*20          % Allocate 20 words of data space
+      </code>
+      <para id="p7">
+	แก้ไข code, ตั้งค่า  <code>PMST</code> เป็น
+	<code>0xFFE0</code>, reset  DSP, แล้ว run.  ตรวจดูว่า ค่าความถี่ที่ตอกลับ
+	มานั้นถูกต้อง หลังจากที่แน่ใจว่า code ทำงานได้ถูกต้องแล้ว ให้เริ่มขั้นต่อไป
+      </para>
+    </section>
+    <section id="sec3">
+      <title>Part 2: Dual-Channel FIR Filters</title>
+      <para id="p9">
+	ขั้นแรก, ให้สร้าง copy ของ  <code>filter.asm</code> ที่ถูกทำการแก้ไข
+	เรียบร้อยแล้ว จากไฟล์ <link target-id="sec2">Part 1</link>. 
+	ใช้ไฟล์นี้ในการทำงาน อย่าทำการแก้ไข filter ที่ใช้ก่อนหน้านี้ เพราะจะมี
+	การใช้ filter ตัวเดิมอีกในภายหลัง
+      </para>
+      <para id="p10">
+	จากนั้น, ทำการแก้ไข code เพื่อที่จะทำการส่ง output ไปที่ filter ตัวแรก
+	 (ด้วย passband  4 kHz ถึง 8 kHz ) ที่ output channel 1 แล้วoutput ที่ไม่ได้ผ่าน
+ 	filter ไปยัง output channel 2, ส่ง output จาก filter ตัวที่สอง
+	(ด้วย passband 8 kHz ถึง12 kHz ) ไปยัง output channel 3. 
+	เพื่อนที่จะทำงานได้ดังที่กล่าว คุณจะต้องใช้  <code>.align</code>  และ
+	 <code>.copy</code> คำสั่งในการ load ชุดของ coefficients ชุดที่สอง
+	ไปยัง data	memory.  นอกจากนี้จะต้องเพิ่มคำสั่ง เพื่อ initialize ค่าของ
+	pointer ให้ชี้ไปยัง coefficients ชุดที่สอง และคำนวณค่าให้ filter ตัวที่สอง
+      </para>
+      <exercise id="new0">
+	<problem id="idp5258480">
+	  <title>Challenge Problem</title> 
+	  <para id="new1"> 
+	    คุณสามารถ implement dual-channel system โดยไม่ใช้ auxiliary registers 
+	   <code>AR4</code> และ   <code>AR5</code> ได้หรือไม่ ?  
+	ทำไมมันถึงยากกว่าปกติ  ?  การเปลี่ยนชื่อ   <code>AR4</code> และ <code>AR5</code> 
+	โดยใช้  <code>.asg</code> ถือว่าไม่นับ!
+	  </para>
+	</problem>
+      </exercise>
+      <para id="p11">
+	การใช้เทคนิคที่กล่าวถึงใน <link document="m10017">DSP
+	Development Environment: Introductory Exercise for TI
+	TMS320C54x</link>, เพื่อนสร้าง test vector และ output ที่ต้องการ
+	ที่เหมาะสมใน MATLAB. และการใช้ test-vector core
+	file ที่อ้างอิงจาก <link document="m10017">DSP
+	Development Environment: Introductory Exercise for TI
+	TMS320C54x</link>, หาผลลัพธ์จากระบบโดยการใช้ test vector นี้
+	ใน MATLAB ให้ทำการสร้างกราฟจากผลลัพธ์จริงและผลัพธ์ที่คาดว่าน่าจะเกิด
+	จากทั้งสอง filter และ ผลต่างจากผลลัพธ์ทั้งสอง ทำไมผลลัพธ์ที่เกิดจาก
+	DSP ถึงไม่เท่ากับผลลัพธ์ที่จาก MATLAB ?
+      </para>
+    </section>
+    <section id="sec5">
+      <title>Part 3: Alternative Single-Channel FIR Implementation</title>
+      <para id="p12">
+	อีกทางเลือกหนึ่งสำหรับการ  implementing symmetric FIR filters
+	โดยใช้คำสั่ง  <term><code>firs</code></term> instruction.  แก้ไข
+	code จาก <link target-id="sec2">Part 1</link> เพื่อ implement
+	filter ที่ใช้ passband 4 kHz to 8 kHz โดยใช้ <code>firs</code>.
+      </para>
+      <para id="p13">
+	ข้อแตกต่างสองประการ ในการ  implementation ระหว่าง code จาก 
+	 <link target-id="sec2">Part 1</link> และ code ที่คุณจะต้องเขียน 
+	สำหรับส่วนนี้ คือ (1) the <code>firs</code> คำสั่งนี้จะทำให้ coefficients 
+	ถูก locate ในส่วนของ program memory แทนที่จะใช้ 
+	data memory, และ (2) <code>firs</code> จะทำให้ states
+	ถูกแยกออกเป็น สอง circular buffer.  อ้างอิงจาก  <code>firs</code>
+	คำสั่งบน <cite><cite-title>หน้า 4-59</cite-title></cite> ใน  <cite url="http://www-s.ti.com/sc/psheets/spru172c/spru172c.pdf"><cite-title>
+	คู่มือ Mnemonic Instruction Set</cite-title></cite>  ซึ่งมีทั้งคำอธิบายและตัวอย่างการใช้
+	 <cite><cite-title>หน้า 4-5 จนถึง 4-8</cite-title></cite> ของ  <cite url="http://www-s.ti.com/sc/psheets/spru173/spru173.pdf"><cite-title>Applications
+	Guide</cite-title></cite> ถ้าหากต้องการข้อมูลเพิ่มเติม (<cite><cite-title>Volumes 2 and
+	4</cite-title></cite> respectively of the <cite><cite-title>TMS320C54x DSP Reference
+	Set</cite-title></cite>).
+      </para>
+      <para id="p14">
+	<code>AR0</code> ต้องถูกตั้งค่าเป็น -1 เพื่อที่จะให้โปรแกรมทำงานได้ถูกต้อง
+	ทำไม? <note type="Note" id="idp8032560"><label>Note</label><code>COEFF</code> เป็นตัวระบุว่า coeffients ตัวไหนที่จะถูกโหลดเข้า
+	ไปใน program memory.  อ้างอิงจาก คำอธิบายของ
+	  <code>firs</code> สำหรับข้อมูลเพิ่มเติม).</note>
+      </para>
+      <code display="block" id="idp6991712">
+	
+	 
+	1	mvdd	*AR2,*AR3+0%		; write x(-N/2) over x(-N)
+	2	sth	A,*AR2			; write x(0) over x(-N/2)
+	3	add	*AR2+0%,*AR3+0%,A 	; add x(0) and x(-(N-1))
+	4					;   (prepare for first multiply)
+	5
+	6	rptz	B,#(FIR_len/2-1)  	  
+	7	firs	*AR2+0%,*AR3+0%,COEFF
+	8	mar	??????? 		; Fill in these two instructions
+	9	mar	???????			; They modify AR2 and AR3.
+	10
+	11					; note that the result is now in the
+	12					;  B accumulator
+      </code>
+      <para id="p15">
+	เนื่องจากในตอนนี้  states และ coefficients จะถูกนำมาใช้ต่างจาก FIR คราวก่อน, 
+	ฉะนั้นจะต้องทำการแก้ไข ค่าตั้งต้นของ  pointer 
+      </para>
+      <code display="block" id="idp5400880">
+	
+	1	stm	#(FIR_len/2),BK		; initialize circular buffer length
+	2	stm	#firstate_,AR2		; initialize location containing first 
+	3					;   half of states
+	4
+	5	stm	#-1,AR0			; Initialize AR0 to -1
+	6
+	7	stm	#firstate2_,AR3	        ; initialize location containing last half
+	
+      </code>
+      <para id="p16">
+	ใช้ test-vector ใน ไฟล์หลัก เพื่อหาผลลัพธ์จากระบบ และใช้ 
+	test-vector ตัวเดียวกัน ทดสอบกับ two-filter system.
+	เปรียบเทียบผลลัพธ์ของ filter นี้ กับ filter ที่ถูก implement 
+	โดยใช้  คำสั่ง<code>mac</code>  ผลลัพธ์เหมือนกันหรือไม่?
+	ทำไมเหมือนหรือทำไมไม่เหมือน?  ตรวจให้แน่ใจว่าผลลัพธ์ถูกส่งไป
+	ที่ channel 1, และ ผลลัพธ์ที่ไม่ได้ ถูก filter ไปที่ output channel 2.
+      </para>
+    </section>
+  </content>
+</document>

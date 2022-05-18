@@ -1,0 +1,102 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Multirate Filtering: Implementation on TI TMS320C54x (Thai Version)</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>2ddf748c-d519-49e2-a454-22d12982a36e</md:uuid>
+</metadata>
+
+
+
+
+
+
+  <content>
+    <section id="sec3">
+      <title>Implementation</title>
+      <para id="p10">
+	ก่อนที่จะเริ่ม  implementing ระบบทั้งหมดดังที่แสงอยู่ใน <link document="m10024" target-id="fig1">Multirate Processing:
+	Introduction</link> ขอให้คุณทำการออกแบบระบบที่มีชุดของ
+	filters FIR 1 และ FIR 2 ที่ไม่มี sample-rate compressor หรือ expander ก่อน.
+	จากนั้นให้ทำการ  verify ว่าค่าที่ได้จาก  two-filter system นั้นถูกต้องหรือไม่
+	 เมื่อเรียบร้อยแล้ว ก้อให้เริ่มทำการ mplement ระบบ multirate ทั้งหมด
+	แล้วทำการ  verify ผลลัพธ์  ในตอนแรกให้ใช้  fixed compression และ expansion
+	factors ของ
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>D</m:ci>
+	    <m:ci>U</m:ci>
+	    <m:cn>4</m:cn>
+	  </m:apply>
+	</m:math>.  ต่อไป คุณจะสามารถควบคุม  factor ตัวนี้โดยช้ MATLAB
+	interface; อย่าลืมเงื่อนไขข้อนี้ในขณะเขียน code ด้วย
+      </para>
+
+      <section id="sec3a">
+	<title>Compressed-rate processing</title>
+	<para id="p12">
+	  ให้ทำการ implement counter ใน code เพื่อที่จะทำการ  
+	processing ที่ระดับ sample rate ที่ต่ำกว่าได้
+	 counter จะเป็นตัวกำหนดว่า ompressed-rate processing
+	จะเกิดขึ้นเมื่อไหร่ และยังสามารถใช้เป็นตัวกำหนดว่าจะเพิ่ม
+	 ศูนย์ ไปใน FIR 3 เพื่อ implement sample-rate expander อีกด้วย
+	</para>
+
+	<para id="p13">
+	  คำสั่งบางอย่างที่อาจมีประโยชน์ ช่วยในการ implement
+	  โครงสร้างแบบ multirate structure คือ <code>addm</code> (add to
+	  memory) และ  <code>bc</code> (branch conditional)
+	 คุณอาจจะลองใช้  <code>banz</code>
+	  (branch on auxiliary register not zero) และ <code>b</code>
+         	 (branch)ได้เช่นกัน
+	</para>
+
+      </section>
+
+      <section id="sec3b">
+	<title>Real-time rate change and MATLAB interface</title>
+	<para id="p16">
+	  Graphical user interface (GUI) อย่างง่ายมีอยู่ที่  (as
+	  <link resource="mrategui.m">mrategui.m</link>, ซึ่งต้องมี
+	  <link resource="ser_snd.m">ser_snd.m</link>) จะทำหน้าที่ส่งตัวเลข
+	ตั้งแต่  1 ถึง 10 ไปยัง DSP ผ่าน serial port.  ซึ่งสามรถใช้วิธีนี้ในการ เปลี่ยน
+	ค่า compression และ expansion factor แบบ real time ได้
+	</para>
+	<para id="p18">
+	  Run GUI โดยพิมพ์คำว่า<code>mrategui</code> ตรง MATLAB
+	  prompt.  จากนั้นควรจะมี แถบเลื่อนปรากฏขึ้นมาอัติโนมัติ เพื่อไว้สำหรับปรับค่า
+	 compression และ expansion factor ที่จะส่งไป DSP
+	</para>
+
+	<para id="p17">
+	  Assembly code ที่คุณได้รับไปนั้นจะเก็บค่าสุดท้ายที่  DSP 
+	ได้รับจากคอมพิวเตอร์ไว้ในหน่วยความจำตำแหน่ง ที่ระบุไว้ว่า
+	   <code>hold</code>.  ถ้าหากคุณไม่ได้ทำการเปลี่ยน serial port
+	สำหรับ  code นั้น, คุณก็จะสามารถหาค่าสุดท้ายของ compression และ
+	 expansion factor ที่เกิดจาก  GUI ได้ที่หน่วยความจำตำแหน่งนี้. 
+	 คุณต้องทำการแก้ไข  code เพื่อให้ทุกครั้งที่ได้รับค่าใหม่จาก
+	  serial port,  compression และ expansion factor ถูกเปลี่ยนด้วย
+	  ถ้าได้รับค่า  "1" ทั้งระบบควรจะทำงานที่ full rate; แต่ถ้าเป็น "10" ระบบ
+	  ควรจะต้องเลือก  sample 9 ตัว จากแต่ละ sample ที่ถูกประมวลผลที่ lower rate ทิ้งไป
+	</para>
+	<para id="p14">
+	  ให้สังเกตุว่า macro <code>READSER</code> และ <code>WRITSER</code>
+	  ซึ่งใช้ในการอ่ารและส่งค่าไปยัง  serial port, ทำการ overwrite <code>AR0</code>,
+	  <code>AR1</code>, <code>AR2</code>, และ register<code>AR3</code>
+	  เช่นกัน <code>BK</code> และ  condition flag
+	  <code>TC</code>.  เพราะฉะนั้นให้ระวังว่า   register เหล่านี้ไม่ได้ถูกใช้โดยส่วนอื่นใน code, 
+	หรือคุณควรจะต้องทำการ  save และ restore ค่าในหน่วยความจำก่อนท่จะเรียกใช้ macro
+	  <code>READSER</code> และ <code>WRITSER</code>  ซึ่งสามารถทำได้โดยใช้คำสั่ง
+	 <code>mvdm</code> และ  <code>mvmd</code> โดยที่  macro เหล่านี้จะทำการ set up
+	  ค่า <code>AR1</code> และ <code>AR3</code>  ทุกครั้งที่ถูกเรียกใช้ จึงไม่จำเป็นต้องเปลี่ยน 
+	 register ก่อนที่จะเรียกใช้ macro
+	</para>
+
+	<para id="p15">
+	  ข้อมูลเพิ่มเติมเกี่ยวกับ macro <code>READSER</code> และ
+	  <code>WRITSER</code> หาได้ที่ <link document="m10821">Core File: Serial Port Communication
+	  Between MATLAB and TI TMS320C54x</link>.
+	</para>
+
+      </section>
+    </section>
+  </content>
+</document>

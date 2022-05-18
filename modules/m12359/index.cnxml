@@ -1,0 +1,85 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>Lab 2: Theory</title>
+  <metadata>
+  <md:content-id>m12359</md:content-id><md:title>Lab 2: Theory</md:title>
+  <md:abstract>ダウンサンプル比Dのダウンサンプラは、DサンプルにつきD-1個のデータを間引き、信号のレートを減少する。アップサンプル比Uのアップサンプラは、サンプル値データ間にU-1個のゼロ値データを挿入し、信号のレートを増加する効果を有している。これらは時変要素を含むため、線形時不変システムの条件を緩和し、信号処理の自由度を飛躍的に向上することを可能としている。ダウンサンプラとアップサンプラは単純な処理ではあるが、非常に深い意味を有している。</md:abstract>
+  <md:uuid>c6983f60-2cfc-4835-8648-bf5fb50c0ea1</md:uuid>
+</metadata>
+
+<content>
+    <section id="sec1">
+      <title>Introduction</title>
+      <para id="p1">
+　以下の演習では、<link target-id="fig1"/>に示す<term>multirate processing</term>(マルチレート処理)が信号に対してどのような影響を与えるかを考察する。下図の<term>sample-rate
+	  compressor</term>(ダウンサンプラ) 
+	(<m:math>
+	  <m:apply>
+	    <m:mo>↓</m:mo>
+	    <m:ci>D</m:ci>
+	  </m:apply>
+	</m:math>)は、ダウンサンプラに入力されるサンプル値のうち
+	<m:math>
+	  <m:ci>D</m:ci>
+	</m:math>サンプルにつき 
+	<m:math>
+	  <m:apply>
+	    <m:minus/>
+	    <m:ci>D</m:ci>
+	    <m:cn>1</m:cn>
+	  </m:apply>
+	</m:math>サンプルのサンプル値を間引く処理を行う。一方、<term>sample-rate
+	  expander</term>(アップサンプラ) 
+	(<m:math>
+	  <m:apply>
+	    <m:mo>↑</m:mo>
+	    <m:ci>U</m:ci>
+	  </m:apply>
+	</m:math>)は、隣接する入力サンプル値間に
+	<m:math>
+	  <m:apply>
+	    <m:minus/>
+	    <m:ci>U</m:ci>
+	    <m:cn>1</m:cn>
+	  </m:apply>
+	</m:math> サンプルのゼロ値のデータを挿入し、信号のレートを増加する処理を行う。<link target-id="fig1"/>において、ダウンサンプル比とアップサンプル比が同じ値(
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>D</m:ci>
+	    <m:ci>U</m:ci>
+	  </m:apply>
+	</m:math>)であると仮定すると, フィルタFIR1とフィルタFIR3は同じサンプルレート
+	<m:math>
+	  <m:ci><m:msub> 
+	      <m:mi>F</m:mi> 
+	      <m:mi>s</m:mi>
+	    </m:msub></m:ci> 
+	</m:math>で動作し、フィルタFIR2はより低いサンプルレート 
+	<m:math>
+	  <m:apply>
+	    <m:divide/>
+	    <m:ci><m:msub>
+		<m:mi>F</m:mi>
+		<m:mi>s</m:mi>
+	      </m:msub></m:ci>
+	    <m:ci>D</m:ci>
+	  </m:apply>
+	</m:math>で動作する。
+      </para>
+
+      <figure id="fig1">
+	<media id="id1170841349977" alt="">
+          <image src="../../media/multirate_sys.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/multirate_sys.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>簡単なマルチレートシステムの構成図</caption>
+      </figure>
+
+      <para id="p2">
+　後述の実験・演習では、<link target-id="fig1"/>に示したシステムを実装し、このシステムの実行時にダウンサンプル比とアップサンプル比を変化して、その挙動を確認する。実行中にこれらの値を変更するためのインタフェースとして、すでに準備したツールを提供する。また、マルチレート処理が信号に与える影響を検討するために、FIR1からFIR3までのそれぞれのフィルタを一時的に取り除いてその影響を調べることも可能である。FIR1とFIR3は、どのような目的を果たしているのか？また、これらのフィルタが存在しない場合には何が起きるのだろうか？   
+   </para>
+    </section>
+
+  </content>
+</document>

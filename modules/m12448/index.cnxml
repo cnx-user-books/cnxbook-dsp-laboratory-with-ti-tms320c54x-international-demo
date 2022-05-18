@@ -1,0 +1,227 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Multirate Filtering: Filter-Design Exercise in MATLAB (Chinese Version)</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>a178515c-3aa0-48a9-8356-70d7c039f9c4</md:uuid>
+</metadata>
+
+
+
+
+  <content>
+      <section id="sec2b">
+	<title>滤波器设计练习</title>
+	<para id="p6">
+	  使用置零的方法为<link document="m10024" target-id="fig1">Multirate Filtering: Introduction</link>中的多频采样系统设计滤波器。一个长度为 
+         <m:math><m:ci>N</m:ci>
+	</m:math> 的FIR滤波器的
+         <m:math>
+	  <m:ci>z</m:ci>
+	</m:math>-变换在
+	<m:math>
+	  <m:apply>
+	    <m:power/>
+	    <m:ci>z</m:ci>
+	    <m:cn>-1</m:cn>
+	  </m:apply>
+	</m:math>中是一个多项式，这个多项式可被因式分解为<m:math>
+	  <m:apply>
+	    <m:minus/>
+	    <m:ci>N</m:ci>
+	    <m:cn>1</m:cn>
+	  </m:apply>
+	</m:math>项。
+      </para>
+      <equation id="eqn3">
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:apply>
+	      <m:ci type="fn">H</m:ci>
+	      <m:ci>z</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:plus/>
+	      <m:ci><m:msub>
+		  <m:mi>h</m:mi>
+		  <m:mn>0</m:mn>
+		</m:msub></m:ci>
+	      <m:apply>
+		<m:times/>
+		<m:ci><m:msub>
+		    <m:mi>h</m:mi>
+		    <m:mn>1</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:apply>
+		<m:times/>
+		<m:ci><m:msub>
+		    <m:mi>h</m:mi>
+		    <m:mn>2</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-2</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:ci>⋯</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:times/>
+	      <m:apply>
+		<m:minus/>
+		<m:ci><m:msub>
+		    <m:mi>z</m:mi>
+		    <m:mn>1</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:apply>
+		<m:minus/>
+		<m:ci><m:msub>
+		    <m:mi>z</m:mi>
+		    <m:mn>2</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:apply>
+		<m:minus/>
+		<m:ci><m:msub>
+		    <m:mi>z</m:mi>
+		    <m:mn>3</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:ci>⋯</m:ci>
+	    </m:apply>
+	  </m:apply>
+	</m:math>
+      </equation>
+
+      <para id="p7">
+	利用这一关系在单位圆上的
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>3</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>8</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>,
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:pi/>
+	      <m:cn>2</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>,
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>5</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>8</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>, 
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>3</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>4</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>, 
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>7</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>8</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>和 
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:pi/>
+	  </m:apply>
+	</m:math>处放置12个复数零来设计一个低通滤波器（用于多频采样系统中的anti-aliasing和anti-imaging滤波器）。你设计的这个滤波器既可被用作 FIR 1，也可被用作 FIR 3。而对于滤波器 FIR 2 则通过在单位圆上的
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:pi/>
+	      <m:cn>4</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math> and 
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>3</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>4</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>处放置四个等间距的零来设计一个低通滤波器（用于多频采样系统的 anti-aliasing 和 anti-imaging   滤波器）。调整设计好的滤波器参数以确保在任何频率下增益都不超过1。
+      </para>
+
+      <para id="p8">
+	在MATLAB中根据给定的零点来计算滤波器参数，并以此来设计滤波器。你可以使用MATLAB的<code>poly</code>函数。在MATLAB中键入<code>help poly</code>来获取使用细节。
+      </para>
+
+      <para id="p9">
+        在确定了滤波器参数后，使用MATLAB中的<code>freqz</code>函数来画出频率响应曲线。你会发现这些滤波器的频率响应具有很大的增益。通过除以适当数值的方法来调整滤波器参数，以确保增益最大不超过1。所得到的频率响应是否和你根据z-平面上零点位置所预计的频率响应相一致？
+      </para>
+    </section>
+  </content>
+  
+</document>

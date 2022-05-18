@@ -1,0 +1,113 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>FIR Filtering: Basic Assembly Exercise for TI TMS320C54x (Japanese - 日本語)</title>
+
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>76a33c90-fdef-48fa-916b-401a11cb6687</md:uuid>
+</metadata>
+
+
+
+  
+  <content>
+    <section id="sec1">
+      <title>アセンブリ演習</title>
+      <para id="p1">　下記のコード例を分析して下さい。不明な点は<link document="m10808">Two's Complement and Fractional Arithmetic
+	for 16-bit Processors</link>, <link document="m10806">Addressing Modes for TI TMS320C54x</link>
+	および <cite url="http://www-s.ti.com/sc/psheets/spru172c/spru172c.pdf"><cite-title>Mnemonic
+	Instruction Set</cite-title></cite>を参照して下さい。
+      </para>
+      <code display="block" id="idm407824">
+	
+	1  FIR_len .set    3
+	2
+	3  ; Assume: 
+	4  ;   BK = 3
+	5  ;   AR0 = 1
+	6  ;   AR2 = 1000h
+	7  ;   AR3 = 1004h
+	8  ;
+	9  ;   FRCT = 1
+	10
+	11      stl     A,*AR3+%
+	12      rptz    A,(FIR_len-1)
+	13      mac     *AR2+0%,*AR3+0%,A
+	
+      </code>
+      <para id="p2">　"<code>;</code>"から始まる行は全てコメントです。この例でのコメントは、11行目に示した最初の命令文<code>stl</code>を実行する前の段階での補助レジスタ<code>BK</code>の値とアドレスレジスタ<code>AR0</code>,<code>AR2</code>, 及び <code>AR3</code>の内容を示しています。1行めの<code>FIR_len .set    3</code>という文は、<code>FIR_len</code>という文字列が3に等しいということを定義しています(訳注：C言語の#define文と同等です）。<code>BK</code>レジスタの値は、このコード例で使用したいサーキュラー・バッファの長さを示しています。記号<code>%</code>は、インクリメント演算子<code>+</code>を修飾しており、これによりサーキュラー・バッファを実現しています。すなわち、メモリアドレスを<code>BK</code>レジスタの値で除算した剰余がゼロになるまでアドレスレジスタがインクリメントする、ということです。インクリメント演算子<code>+</code>の次に<code>0</code>を置いた場合、レジスタ<code>AR0</code>が指定する値までインクリメントするという動作になります。
+
+注意：<code>h</code>が末尾に付いている数および<code>0x</code>で始まる数は、<term>16進数</term>の値を表しています。
+      </para>
+      <example id="example1">
+	<para id="p2b">
+1000hと0x1000は、両方とも10進数の4096を表しています。
+</para>
+      </example>
+      <para id="p3">　データメモリは<code>1000h</code>番地から始まり、下記のよに初期化されていると仮定します。
+      </para>
+      <figure id="tab1fig">
+	<media id="idp204864" alt=""><image src="../../media/reg1.png" mime-type="image/png"/></media>
+	<caption>データメモリの内容(実行前)</caption> 
+      </figure>
+      <para id="p3b">　まず<code>stl</code>,<code>rptz</code>, 及び <code>mac</code>命令を各自で理解してから、コード例を一行ずつ実行したときのアキュムレータ<code>A</code>および補助レジスタ<code>AR2</code>、<code>AR3</code>の値を<link target-id="table2fig"/>の空欄に記入して下さい。さらに、3行のコードをすべて実行した後でのメモリの内容を<link target-id="table3fig"/>の空欄に記入して下さい。
+      </para>
+      <table frame="all" id="table2fig" summary="">
+	  <tgroup cols="4">
+	    <thead>
+	      <row>
+		<entry>A</entry>
+		<entry>AR2</entry>
+		<entry>AR3</entry>
+		<entry/>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><code>00 0000 8000h</code></entry>
+		<entry><code>1000h</code></entry>
+		<entry><code>1004h</code></entry>
+		<entry>at start of code</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after <code>stl</code> instruction</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after <code>rptz</code> instruction</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after first <code>mac</code> instruction</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>
+		  after second <code>mac</code> instruction
+		</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after third <code>mac</code> instruction</entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	<caption>実行結果</caption></table>
+      <para id="p4">　この演習を行う際、アキュムレーター<code>A</code>が40ビットレジスタであることや、乗算が<term>固定小数点演算モード</term>であることを考慮に入れてください。このモードでは、DSP上での整数は分数(いわゆるQフォーマットの小数)として解釈され、また乗算器もそのように扱うでしょう。このような扱いは、ALU内の整数の乗算結果を1ビット左シフトすることによりなされます(ここに示すすべての例では、すべての演算は固定小数点演算であると仮定します)。したがって、<code>mac</code>命令によりALUによって実行される乗算結果は、単に２つの整数を乗算したときの結果の２倍の値となります。DSPにおける数値表現および演算は、<link document="m10808">Two's Complement and Fractional Arithmetic for 16-bit Processors</link>という文書にさらに詳しく記述されていますので、適宜参照して下さい。
+      </para>
+      <figure id="table3fig">
+	<media id="idm8366752" alt=""><image src="../../media/reg2.png" mime-type="image/png"/></media> 
+	<caption>データメモリの内容(実行後)</caption>
+      </figure>
+    </section>
+  </content>
+</document>

@@ -1,0 +1,190 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>FIR Filtering: Exercise for TI TMS320C54x (Japanese Version)</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>4ae24ac0-84c8-403f-89ee-b8f9a5ef789b</md:uuid>
+</metadata>
+
+
+
+
+  <content>
+    <section id="sec1">
+      <title>Introduction</title>
+      <para id="para1a"> この演習で、FIRフィルタを作成するためにDSPのアセンブリ言語でプログラムします。基礎的なFIRフィルタのためのアセンブリコードを勉強することから始めて下さい。<link document="m10017" resource="filter.asm">filter.asm</link>.
+      </para>
+      <code id="fig1" display="block" class="listing"><title>filter.asm</title>
+	   1	.copy "core.asm"  	; Copy in core file
+	  2   					; This initializes DSP and jumps to "main"
+	  3	
+	  4  FIR_len .set   8			; This is an 8-tap filter.
+	  5	
+	  6          .sect ".data"		; Flag following as data declarations
+	  7   
+	  8    	    .align 16			; Align to a multiple of 16
+	  9  coef					; assign label "coeff"
+	  10	    .copy "coef.asm"		; Copy in coefficients
+	  11
+	  12	    .align 16
+	  13 firstate
+	  14 	    .space 16*8			; Allocate 8 words of storage for
+	  15					; filter state.
+	  16
+	  17	    .sect ".text"		; Flag the following as program code
+	  18  main
+	  19      ; Initialize various pointers
+	  20	    stm    #FIR_len,BK		; initialize circular buffer length
+	  21	    stm    #coef,AR2    	; initialize coefficient pointer
+	  22	    stm	   #firstate,AR3	; initialize state pointer
+	  23	    stm    #1,AR0		; initialize AR0 for pointer increment
+	  24	
+	  25  loop
+	  26      ; Wait for a new block of 64 samples to come in
+	  27  	    WAITDATA
+	  28	
+	  29      ; BlockLen = the number of samples that come from WAITDATA (64)
+	  30    	    stm     #BlockLen-1, BRC	; Put repeat count into repeat counter
+	  31    	    rptb    endblock-1		; Repeat between here and 'endblock' 
+	  32
+	  33    	    ld	    *AR6,16, A		; Receive ch1 into A accumulator
+	  34    	    mar     *+AR6(2)            ; Rcv data is in every other channel
+	  35    	    ld      *AR6,16, B		; Receive ch2 into B accumulator
+	  36    	    mar     *+AR6(2)            ; Rcv data is in every other channel
+	  37    
+	  38    	    ld	    A,B			; Transfer A into B for safekeeping
+	  39
+	  40      ; The following code executes a single FIR filter.
+	  41	
+	  42    	    sth     A,*AR3+%		; store current input into state buffer
+	  43    	    rptz    A,(FIR_len-1)	; clear A and repeat
+	  44    	    mac     *AR2+0%,*AR3+0%,A	; multiply coef. by state &amp; accumulate
+	  45    
+	  46    	    rnd     A			; Round off value in 'A' to 16 bits                            
+	  47    
+	  48     ; end of FIR filter code. Output is in the high part of 'A.'
+	  49
+	  50    	    sth     A, *AR7+		; Store filter output (from A) into ch1
+	  51    	    sth     B, *AR7+		; Store saved input (from B) into ch2
+	  52    
+	  53    	    sth     B, *AR7+		; Store saved input to ch3...ch6 also
+	  54    	    sth     B, *AR7+		; ch4
+	  55    	    sth     B, *AR7+		; ch5 
+	  56    	    sth     B, *AR7+		; ch6
+	  57   
+	  58  endblock:
+	  59      b loop
+	</code>
+      <para id="p1">
+	 <code>filter.asm</code>は入力チャンネル1からの信号にFIRフィルタを適用し、その結果生じた出力を出力チャンネル1に送ります。さらに、それは、オリジナル信号も出力チャンネル2に送ります。
+      </para>
+      <para id="p2">
+	まず始めに、この演習中のファイルのためのネットワークドライブ上にワークディレクトリを作成し、それに<link document="m10017" resource="filter.asm">filter.asm</link>と<link document="m10017" resource="core.asm">core.asm</link>
+をコピーしてください。 次に、2つの20-タップFIRフィルタを生成するためにMATLABを使用してください。 第1フィルタは4kHzから8kHzの信号を通過させ、第２フィルタは8kHzから12kHzまでの信号を通過させます。 両方のフィルタに対し、フィルタ通過帯域の各端に1kHの遷移域を許可してください。 これらのフィルタを作成するために、最初にシステムの44.1kHzのサンプル割合に基づいたデジタル周波数にこれらの域の端を変換し、次に、このフィルタを生成するためにMATLABの<code>remez</code>コマンドを使用して下さい。 詳細は<code>help remez</code>をタイプしてください。 これらのフィルタを別々に異なるファイルへ保存するために、<code>save_coef</code>コマンドを使用してください。(保存する前にフィルタ係数のベクトルを逆にすることを確かめてください。) 後に、テスト・ベクトルを生成するためにフィルタが必要になるので、MATLABマトリックスとしてフィルタを保存してください。これはMATLABの<code>save</code>コマンドを使って行うことができます。一旦これが終わった後、各フィルタの周波数レスポンスのグラフを描画する<code>freqz</code>コマンドを使用してください。
+      </para>
+    </section>
+    <section id="sec2">
+      <title>パート１: シングルチャネル FIRフィルタ</title>
+      <para id="p3">
+現時点では、4kHzから8kHzの通過帯域フィルタのみを実行します。いくつかの変更を加えて、このフィルタ用の係数を使用するために<code>filter.asm</code>を編集してください。
+      </para>
+      <para id="p4">
+最初に、この演習用のFIRフィルタの長さは8ではなく20です。したがって、<code>FIR_len</code>を20に変更する必要があります。<code>FIR_len</code>は、数字を記号名に指定する<code>.set</code>という指示を使用するセットです。これを<code>FIR_len .set 20</code>に変更して下さい。
+      </para>
+      <para id="p5">
+次に、<code>.copy</code>という指示が正しい係数を導くことを確かめて下さい。最初のフィルタ用に係数を含んでいるファイルを示すためにファイル名を変更してください。
+      </para>
+      <para id="p6">
+次に、<code>.align</code>と<code>.space</code>の指示を適切に修正します。 TI TMS320C54x DSPは、バッファーの長さより2乗倍数以上であるアドレスで始まるように、FIRフィルタ係数およびステートバッファのために使用される循環的なバッファーが提携することを必要とします。 ここでは(20要素からなるステートおよび係数バッファーを使用する)20-タップフィルタを使用しているので、次の2乗は32です。	
+したがって、32倍のアドレスにステートおよび係数バッファを整列させる必要があるでしょう。(16要素からなるバッファーは、さらに32の倍数に整列させる必要があるでしょう。)
+これは<code>.align</code>コマンドで終了します。さらに、メモリはステートバッファのために保存されるでしょう。これは、<code>.space</code>という指示(割り付けるためのスペースの<emphasis>ビット</emphasis>数を入力)を使用して終わります。したがって、20単語の記憶域を割り付けるためには、以下のように<code>.space 16*20</code>をいう指示を使用してください:
+      </para>
+      <code display="block" id="idp518832">
+	1         .align 32             % Align to a multiple of 32
+	2  coef   .copy  "filter1.asm"  % Copy FIR filter coefficients
+	3
+	4         .align 32             % Align to a multiple of 32
+	5  state  .space 16*20          % Allocate 20 words of data space
+      </code>
+      <para id="p7">
+コードを組み立てて、<code>0xFFE0</code>に<code>PMST</code>をセットしてDSPをリセットし、実行してください。 それが正確な周波数反応である事を確認してください。 このコードが適切に動くことを確認した後、次のステップに移ってください。
+      </para>
+    </section>
+    <section id="sec3">
+      <title>パート２: ２重チャンネルFIRフィルター</title>
+      <para id="p9">
+最初に、<link target-id="sec2">パート１</link>から修正済の<code>filter.asm</code>ファイルのコピーを作ってください。 前パートからの作動中のフィルタを修正して作業するのではなく、このコピーから作業してください。 そのコードは後に使用されます。
+      </para>
+      <para id="p10"> 
+次にそのコードを修正し, チャンネル1を出力するための(4kHzから8kHzの通過域を備えた)最初のフィルタの出力および, チャンネル2を出力するためのフィルタされてない入力を送ることに加えて、それがチャンネル3を出力するための(8kHzから12kHzの通過域を備えた)2番めフィルタの出力を送る。  
+これを行うために、データ・メモリに係数の第2のセットをロードするための<code>.align</code>と<code>.copy</code>を使用する必要があります。 また、係数の第2セットへのポインターを初期化し、第2フィルタのために計算をする指示を加える必要があります。
+      </para>
+      <exercise id="new0">
+	<problem id="idm8627136">
+	  <title>発展問題</title> 
+	  <para id="new1"> 
+補助レジスタである<code>AR4</code>および<code>AR5</code>を使用せずに、デュアルチャネルシステムを実行することができますか。 これがより困難なのは何故でしょうか。<code>.asg</code>を使用して<code>AR4</code>と<code>AR5</code>を改名する方法は、正解ではありません! 
+	  </para>
+	</problem>
+      </exercise>
+      <para id="p11">
+<link document="m10017">DSP
+	Development Environment: Introductory Exercise for TI
+	TMS320C54x</link>で紹介されている技術を使って、適切なテスト・ベクトルと予想されるMATLABの出力を生成しなさい。 その後、<link document="m10017">DSP
+	Development Environment: Introductory Exercise for TI
+	TMS320C54x</link>で紹介されているテストベクトルコアファイルを使用して、このテスト・ベクトルにより与えられるシステムの出力を見つけなさい。 MATLABで、予想されるフィルタの出力と実際のフィルタの出力、及びその２つの出力間の違いを作図しなさい。なぜDSPシステムからの出力は、MATLABからの出力と実際には同じではないのでしょうか。
+      </para>
+    </section>
+    <section id="sec5">
+      <title>パート３: 代替シングルチャンネルFIRの実行</title>
+      <para id="p12">
+対称なFIRフィルタを実行する為の代替方法では、<term><code>firs</code></term>という指示を使用します。<code>firs</code>を使用する、4kHzから8kHzの通過域を備えたフィルタを実行する為に、<link target-id="sec2">パート１</link>からのコードを修正しなさい。
+      </para>
+      <para id="p13"> 
+<link target-id="sec2">パート１</link>からのコードと、このパートで書くコード間の実行における2つの差は、(1)<code>firs</code>という指示が、係数がデータ・メモリの代わりにプログラム・メモリ内に配置されるのを予期することと、(2)<code>firs</code>が、そのステートが2つの別個の循環バッファーへ分割されるのを要求することです。 <cite><cite-title>4-59ページ</cite-title></cite>に記載されている<cite url="http://www-s.ti.com/sc/psheets/spru172c/spru172c.pdf"><cite-title>Mnemonic
+	Instruction Set</cite-title></cite>というマニュアル内の<code>firs</code>の指示を参考にしなさい。また、詳細(<cite><cite-title>Volumes 2 and
+	4</cite-title></cite> と <cite><cite-title>TMS320C54x DSP Reference
+	Set</cite-title></cite>)については<cite url="http://www-s.ti.com/sc/psheets/spru173/spru173.pdf"><cite-title>Applications
+	Guide</cite-title></cite>の<cite><cite-title>4-5ページ から 4-8ページ</cite-title></cite>にある、その使用法の説明と例も参考にしなさい。
+      </para>
+      <para id="p14">
+<code>AR0</code>は、このコードが適切に機能するために、-1にセットされる必要があります。なぜでしょうか?
+
+	<note type="Note" id="idp427920"><label>Note</label>
+<code>COEFF</code> は,今プログラム・メモリにあると予想される係数へのラベルです。詳細は<code>firs</code>に関する記述を参照しなさい。</note>
+      </para>
+      <code display="block" id="idm8519232">
+	
+	 
+	1	mvdd	*AR2,*AR3+0%		; write x(-N/2) over x(-N)
+	2	sth	A,*AR2			; write x(0) over x(-N/2)
+	3	add	*AR2+0%,*AR3+0%,A 	; add x(0) and x(-(N-1))
+	4					;   (prepare for first multiply)
+	5
+	6	rptz	B,#(FIR_len/2-1)  	  
+	7	firs	*AR2+0%,*AR3+0%,COEFF
+	8	mar	??????? 		; Fill in these two instructions
+	9	mar	???????			; They modify AR2 and AR3.
+	10
+	11					; note that the result is now in the
+	12					;  B accumulator
+      </code>
+      <para id="p15">
+ステートと係数が、現時点で以前のFIR実行の時とは異なった扱いであるため、下記のようにポインターの初期化を修正する必要があります。
+      </para>
+      <code display="block" id="idm461344">
+	
+	1	stm	#(FIR_len/2),BK		; initialize circular buffer length
+	2	stm	#firstate_,AR2		; initialize location containing first 
+	3					;   half of states
+	4
+	5	stm	#-1,AR0			; Initialize AR0 to -1
+	6
+	7	stm	#firstate2_,AR3	        ; initialize location containing last half
+	
+      </code>
+      <para id="p16">
+２つのフィルタシステムをテストするために使用したのと同じテスト・ベクトルにより与えられるこのシステムの出力を見つけるために、テストベクトルコアファイルを使用しなさい。このコードの出力を、<code>mac</code>という指示を使用して実行された同じフィルタの出力と比較しなさい。 結果は同じですか？ その理由は何故でしょうか？ フィルタされた出力が、チャンネル1を出力するために送られる事と、未変更の出力が、まだチャンネル2を出力するために送られることを確認しなさい。
+
+      </para>
+    </section>
+  </content>
+</document>

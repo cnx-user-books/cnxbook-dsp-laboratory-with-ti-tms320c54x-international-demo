@@ -1,0 +1,366 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+    
+    <title>Lab 0: Hardware Introduction</title>
+    <metadata>
+  <md:content-id>m11882</md:content-id><md:title>Lab 0: Hardware Introduction</md:title>
+  <md:abstract>This exercise introduces the hardware and software used in the course. By the end of this module, you should be comfortable with the basics of testing a simple real-time DSP system with Code Composer Studio, the debugging environment we will be using throughout the semester. First you will connect the laboratory equipment and test a real-time DSP system with provided code to implement an eight-tap (eight coefficient) finite impulse response (FIR) filter. With
+a working system available, you will then begin to explore the debugging software used for downloading, modifying,
+and testing your code. Finally, you will create a filter in MATLAB and use test vectors to verify the DSP's output.</md:abstract>
+  <md:uuid>a4ebec6e-1911-415c-a998-e7b92d21d45d</md:uuid>
+</metadata>
+
+<content>
+
+      <section id="sec_sum">
+      <title>要約:</title>
+      <para id="par_sum">　この実験では、コースで使用するハードウェアおよびソフトウェアを紹介します。この演習を終了すれば、デバッグ環境 Code Composer Studio を備えたシンプルなリアルタイムDSPシステムの操作に習熟することができるはずです。Code Composer は、学期を通じてあなたが使用するソフトウエアです。まず最初に実験設備に触れ、8タップの有限インパルス応答(FIR)フィルタを実時間DSPシステムに実装し、そのテストを行います（あらかじめコードが準備されています）。システムが動作可能になったところで、引き続きソフトウエアデバッグ/開発環境の調査を行います。このソフトウエア環境は、プログラムのロード、変更、コードのテスト、デバッグなどを実行するためのものです。最後に、MATLABでフィルタを作成し、DSP出力を検証するためのテストベクトルを作成します。</para>
+      </section>
+
+      <section id="intro">
+	<title>イントロダクション</title>
+	<para id="introp1">　この実験では、DSPシステムを動作させる場合に必要となるハードウェアおよびソフトウェアを紹介します。この演習を終了すれば、デバッグ環境を備えたシンプルなリアルタイムDSPシステムの操作に習熟することができるはずです。このDSPシステムは、学期を通じてあなたが使用するものです。まず最初に実験設備に触れ、8タップの有限インパルス応答(FIR)フィルタを実時間DSPシステムに実装し、そのテストを行います（あらかじめコードが準備されています）。システムが動作可能になったところで、引き続きソフトウエアデバッグ/開発環境の調査を行います。このソフトウエア環境は、プログラムのロード、変更、コードのテスト、デバッグなどを実行するためのものです。最後に、MATLABにより親しむためのいくつかの課題が与えられています。
+	</para>
+      </section>
+      
+      <section id="sec1">
+	<title>実験設備</title>
+	<para id="p1">　この実験では、あなたがテキサス・インスツルメンツ社製TMS320C549デジタル信号処理チップを実装したスペクトラム・ディジタル社製TMS320LC54x評価ボードを利用できることを仮定しています。DSP評価モ ジュールはWindows PCに接続し、デバッガおよび開発環境であるCode Composer Studioを使用して制御します。クリスタルセミコンダクター社製CS4226コーデックを使用したスペクトラム・ディジタル社製のサラウンドサウンドモジュールが、各DSP評価ボードの上にマウントされています。このボードは、44.1kHzのCDサンプルレートで2つのアナログ入力チャンネルおよび6つのアナログ出力チャンネルを提供します。DSPボードは、PC上のターミナルエミュレータまたはユーザが記述したコードによりシリアルポートを通じて通信することができます。 
+	</para>
+	
+        <para id="p2">　実験装置のセットとして、DSPボードおよびPCに加えてテスト信号を発生するファンクションジェネレータおよび処理後の信号を表示するオシロスコープも準備してください。</para>
+	
+	<section id="sec1a">
+	  <title>ステップ１:ケーブル接続</title>
+	  <para id="p3">　BNCケーブルにより、ファンクションジェネレーターの出力とDSP評価ボード入力チャネル1とを接続してください。また、ボードの出力チャネル1と2をそれぞれオシロスコープのチャネル1と2に接続してください。<link target-id="fig1"/>にこれらの接続図を示します。
+	  </para>
+
+	  <figure id="fig1">
+	    <title>ハードウェア・セット・アップ例</title>
+	    <media id="id1170261155383" alt="">
+              <image src="../../media/setup.png" mime-type="image/png"/>
+              <image for="pdf" src="../../media/setup.eps" mime-type="application/postscript"/>
+            </media>
+	  </figure>
+
+	  <para id="p4">　この構成では、DSPボードへの入力信号は１つだけであり、出力信号は2つあるということに注意してください。DSPボードのチャネル1の出力はフィルタリングされた入力信号です。一方、チャネル2の出力はフィルタリングされていない入力信号です。ですから、オシロスコープ上で入力信号とフィルタ処理後の信号とを同時に観測することが可能です。準備ができたら、ファンクションジェネレーターおよびオシロスコープの電源を入れて下さい。
+	  </para>
+	</section>
+
+	<section id="sec1b">
+	  <title>ステップ２:ログイン</title>
+	  <para id="p5">　指定されたネットワークIDおよびパスワードにより、実験セットのPCにログインして下さい。
+	  </para>
+	</section>
+      </section>
+      
+      <section id="sec2">
+	<title>開発環境</title>
+	<para id="p8">　評価ボードは、PC上で動作するCode Composer Studioというアプリケーションを用いることにより、JTAGインターフェース(XDS510PP)を通じてPCから制御されます。この開発環境は、ユーザがPCでビルドしたコードをDSPボードにロードし、実行・デバッグすることことを可能にします。以下のステップ（<link target-id="sec2a">ステップ３、４、５</link>）に添って与えられたFIRフィルタのコードを実行し、デバッグ環境とリアルタイムシステムを自学自習して下さい。その後、（<link target-id="sec2d">ステップ６、７</link>）に従いMATLAB演習を行い、フィルタの周波数応答を検証して下さい。
+	</para>
+
+	<section id="sec2a">
+	  <title>ステップ３: フィルタ処理コードのアセンブル</title>
+	  <para id="p9">　提供されたFIRフィルタのコードを実行・テストする前に、ソース・ファイル群を適切なディレクトリに格納してアセンブルする必要があります。最初にコマンドウインドウを起動して、ファイルを保存するために新しいディレクトリを作成し、そして
+<link resource="filter.asm">filter.asm</link>、 
+<link resource="coef1.asm">coef1.asm</link>、 
+<link resource="coef2.asm">coef2.asm</link>、 
+<link resource="core.asm">core.asm</link>、 
+<link resource="vectcore.asm">vectcore.asm</link>
+というファイルをそのディレクトリへコピーして下さい。
+	  </para>
+
+	  <para id="p10">　次に、<code>coef1.asm</code>というファイルを<code>coef.asm</code>というファイルにコピーし、コマンドウインドウで<code>asm filter</code>とタイプして、フィルタ・コードをアセンブリして下さい。 このアセンブリ処理では、まずFIRフィルタ係数(<code>coef.asm</code>)をアセンブリファイル<code>filter.asm</code>にインクルードし、それをコンパイルすることにより実行可能なバイナリファイル<code>filter.out</code>を生成します。          </para>
+	</section>
+	
+	<section id="sec2b">
+	  <title>ステップ４: フィルタ実行結果の確認</title>
+	  <para id="p11">　フィルタ・コードがアセンブルされたら、デバッグ環境を起動するためにCode Composerアイコンをダブルクリックして下さい。DSPボードに実行可能バイナリコードをロードする前に、DSPボードをリセットし、<term>processor mode status register(PMST)</term>を初期化しなければなりません。ボードをリセットするために、Code Composer の<code>Debug</code>メニューから<code>Reset</code>オプションを選択して下さい。
+	  </para>
+
+	  <para id="p12">　ボードをリセットしたら、<code>View</code>メニューで<code>CPU Register</code>オプションを選択し、さらに<code>CPU Register</code>を選択して下さい。これにより、Code Composer 画面の下部にDSPのレジスタの値を表示するサブウィンドウが開きます。ここで、<code>PMST</code>レジスタの値が<code>FFE0</code>であることを確認して下さい。この値であれば、DSPボードは正常に動作しています。<code>PMST</code>レジスタの値が<code>FFE0</code>でない場合には、<code>PMST</code>レジスタの値をダブルクリックして<code>Edit Register</code>ウィンドウを開き、<code>PMST</code>レジスタの値を<code>FFE0</code>にして下さい。</para>
+
+	  <para id="p13">　次に<code>File</code>メニューから<code>Load Program</code>を選択して、アセンブルされたフィルタリングプログラムをDSPボードにロードして下さい。最後に、DSPを再びリセットして、<code>Debug</code>メニューから<code>Run</code>を選択し、プログラムを実行してください。 </para>
+
+	  <para id="p14">　実行中のプログラムでは、入力チャネル1から入力を受け取り、出力チャンネル1にフィルタリングした信号を、出力チャネル2には入力信号をそれぞれ出力します。アナログ入力をデジタル信号に変換し、そしてアナログ信号に戻す際に生ずる歪のために、出力チャネル2から出力される「未処理の入力信号」は、入力チャネル1に入力された実際の入力信号と異なるかもしれないことに注意して下さい。6チャネル入出力ボード上のA/DおよびD/A変換器は、44.1kHzのサンプルレートで動作し、アンチエイリアシングフィルタとアンチイメージフィルタを内蔵しています。理想的には、これらのフィルタは22.05kHz以上の周波数成分を除去します。また、6チャネル入出力ボード上のA/D・D/A変換器はAC結合されており、直流信号を通すことができません。以上より、入力チャネル1の信号と出力チャネル2の信号にはどのような違いが観測されると予想しますか?
+	  </para>
+
+	  <para id="p15">　ファンクションジェネレーターの出力信号を、振幅1.0Vピーク・トゥ・ピークの正弦波にして下さい。適切な周波数範囲で入力信号を掃引することにより、フィルタの周波数応答を観察して下さい。サンプリング周波数44.1kHzのDSPシステムに対する適切な周波数範囲はどのようであるべきでしょうか？
+	  </para>
+	  
+	  <para id="p17">　観測した周波数応答に基づいて、フィルタ特性の種類(例：ローパス、ハイパス、バンドパス)および-6dB(振幅が半分になる)カットオフ周波数を明らかにして下さい。なお、オシロスコープのチャンネル1の信号の大きさがゼロになる可能性がありますので、トリガーソースをチャネル2にしたほうが適切です。</para>
+	</section>
+
+	<section id="sec2c">
+	  <title>ステップ５：新しいフィルタでの再アセンブル及び再実行</title>
+	  <para id="p18">　同様の手順を繰り返すことにとより、異なるフィルタ係数でDSPに実装したディジタルフィルタのタイプを特定することができます。先ほどとは違うフィルタ係数が<code>coef2.asm</code>に格納されています。 <code>coef2.asm</code>のコピーを作成し、そのファイルを改めて<code>coef.asm</code>と呼ぶことにします。  </para>
+
+	  <para id="p19">　<link target-id="sec2b">ステップ４</link>で説明したように、<code>DOS</code>プロンプトで<code>asm</code> 命令を実行し、新しいフィルタ係数でのコードのアセンブルとテスト実行を繰り返すことが出来ます。<link target-id="sec2b">ステップ４</link>と同様に、あなたが実行しているフィルタ特性の種類を特定するとともに、フィルタの-6dBのポイントの周波数を測定して下さい。フィルタの特性により、-6dB周波数が複数存在する場合があることにも注意して下さい。</para>
+
+	  
+	</section>
+	
+	<section id="sec2d">
+	  <title>ステップ６： MATLAB中のフィルタ応答確認</title>
+	  <para id="p20b">　このステップでは、DSPからMATLABにフィルタ係数をコピーし、MATLABの<code>freqz</code>関数を使用して振幅特性を表示することによりフィルタの周波数応答を確認します。</para>
+	  <para id="p21">　<code>coef.asm</code>ファイルに格納されているFIRフィルタ係数は、<code>0x1000</code>（１６進表示）の位置からスタートするDSP上のメモリに格納されています。また、先ほどアセンブル処理して実行した各フィルタは、8つの係数を有しています。符号付きの整数値としてフィルタ係数を表示するために、<code>View</code>メニューで<code>Memory</code>オプションを選択し、<code>Memory Window Options</code>画面を開きます。この画面の適切なフィールドで、スタートアドレスを<code>0x1000</code>にセットし、<code>16ビットSigned Int</code>フォーマットを指定します。「OK」をクリックすると、メモリ・ウィンドウが開き、指定されたアドレスのメモリの内容が表示されます。左側に表示される値は、メモリのアドレスを示しています。</para>
+
+	  <para id="p22">　この例において、フィルタ係数は逆順のアドレスでメモリに記憶されます。すなわち最後の係数、	    <m:math>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">h</m:ci>
+		<m:cn>7</m:cn>
+	      </m:apply>
+	    </m:math>
+
+は<code>0x1000</code>の位置に、また最初の係数
+
+	    <m:math>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">h</m:ci>
+		<m:cn>0</m:cn>
+	      </m:apply>
+	    </m:math>
+は<code>0x1007</code>に格納されます。
+	  </para>
+
+	  <para id="p23">　以上の準備により、メモリに格納された係数値を確認することができ、フィルタ係数値からMATLABの<code>freqz</code>関数によりフィルタの振幅特性を確認する準備ができました。freqz関数を使用するために、フィルタ係数値を格納したベクトルをMATLABのワークスペースに作成しなければなりません。例えば、係数-10、20、-10の3タップフィルタの応答は、下記のMATLABのコマンドにより表示することができます。
+	    <list id="link2" list-type="bulleted">
+	      <item><code>h = [-10, 20, -10];</code></item>
+	      <item><code>plot(abs(freqz(h)))</code></item>
+	    </list>
+	  </para>
+
+	  <para id="p24">　なお、この演習課題では、アドレス<code>0x1000</code>から<code>0x1007</code>までのメモリの内容を、係数ベクトル
+
+	    <m:math>
+	      <m:ci>h</m:ci>
+	    </m:math>
+
+に入力しなければならないということに注意してください。 
+	  </para>
+
+	  <para id="p25">MATLABで表示した振幅特性は、先ほどの実験結果に一致しますか。違いがあるとすれば、どのように説明できるでしょうか？</para>
+	</section>
+	
+	<section id="sec2e">
+	  <title>ステップ７： MATLAB中への新しいファイルの作成と確認</title>
+	  <para id="p26">　MATLABスクリプトはコード開発の役に立ちます。例えば、これらのスクリプトのうちの1つでは、MATLABの中で作成されたフィルタ係数をアセンブリ処理の際にインクルード可能なファイルとして保存することができます。これは、長いフィルタを実現する際に非常に便利です。これらのスクリプトは、あなたのコンピューターに既にインストールされているかもしれません。もしないようなら、紹介されているリンクからそれらのファイルをダウンロードしてください。</para>
+
+	  <para id="p27">　最初に、MATLABプロンプトで<code>h = gen_filt;</code>とタイプして、MATLABに「ランダム」8-タップ・フィルタを作成させてください。次に、<code>save_coef('coef.asm',flipud(h));</code>とタイプして、フィルタ係数ベクトルを保存してください。あなた自身のディレクトリの中でファイルを保存することを確認すること(これらの機能を実行するスクリプトは <link resource="gen_filt.m">gen_filt.m</link>や<link resource="save_coef.m">save_coef.m</link>として利用可能です)。
+	  </para>
+
+	  <para id="p28">上記の場合、MATLABスクリプトはベクトルの係数
+<m:math>
+  <m:ci>h</m:ci>
+</m:math>
+を、<code>coef.asm</code>と名付けられたファイルの中へ保存します。このスクリプトでは、係数ベクトルを「逆順」にしてから保存してることに注意してください。前述のように、メモリアドレス<code>0x1000</code>から<code>0x1007</code>番地まで
+<m:math>
+  <m:ci>h</m:ci>
+</m:math>
+の内容を逆順で格納するためです。
+	  </para>
+
+	  <para id="p29">
+<link target-id="sec2c">ステップ５</link>で行ったように、新しいフィルタコードを再度アセンブリし再実行出来ます。
+	  </para>
+
+
+	  <para id="p30">
+新しいフィルタをロードする時に、<code>0x1000</code>から<code>0x1007</code>までのメモリロケーションの内容が更新することに注目しなさい。
+	  </para>
+
+	</section>
+	<section id="sec2f">
+	  <title>ステップ８：メモリ中のフィルタ係数修正</title>
+	  <para id="p31">　デバッガを使用してDSP上のメモリの内容を参照するだけでなく、すべてのメモリのアドレス（番地）について、そのアドレスをダブルクリックし、ポップアップ・ウィンドウの中で値を変更をするだけで、そのアドレスに格納された内容を変更することができます。
+	  </para>
+
+	  <para id="p32a"><code>0x1000</code>から<code>0x1007</code>までのメモりロケーションにおいて、フィルタ係数が次式で示される遅延器
+	    <equation id="eqn1">
+	      <m:math>
+		<m:apply>
+		  <m:eq/>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">h</m:ci>
+		    <m:ci>n</m:ci>
+		  </m:apply>
+		  <m:apply>
+		    <m:times/>
+		    <m:cn>8192</m:cn>
+		    <m:apply>
+		      <m:ci>δ</m:ci>
+		      <m:apply>
+			<m:minus/>
+			<m:ci>n</m:ci>
+			<m:cn>4</m:cn>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:math>
+	    </equation>
+を実現するようにメモリの内容を変更して下さい。DSPは、整数値8192を16ビット2の補数形式で表現可能な正の最大の整数値 32768 で割った分数値として表現することに注意して下さい。このフィルタの出力信号は、入力信号より4サンプル遅延し、大きさは
+	    <m:math>
+	      <m:cn type="rational">1<m:sep/>4</m:cn>
+	    </m:math>.
+になります。DSPにおける数値の内部表現の考え方についての情報は<link document="m10808">TWO'S COMPLEMENT AND FRACTIONAL ARITHMETIC FOR 16-BIT PROCESSORS</link>文書にあります。
+	  </para>
+
+	  <para id="p32b">　8つの係数値すべてに変更を加えた後で新しいフィルタプログラムを実行し、処理前の入力信号とフィルタ処理後の信号（遅延を受けた信号）の波形間の遅れをオシロスコープを用いて測定してください。
+	  </para>
+
+	  <para id="p33">信号の大きさを決定するスケーリング係数（先ほどの例では8192）や遅延のサンプル数を変化すると、出力信号はどのように変化するでしょうか？また、6サンプルの遅延は何秒の遅延時間に相当するでしょうか。オシロスコープのチャネル１とチャネル２の信号間の遅延時間を測定する最も効率的な方法は何でしょうか？
+</para>
+	</section>
+
+	<section id="sec2g">
+	  <title>ステップ９：テストベクトルシミュレーション</title>
+	  <para id="p34">　最後の演習として、指定した入力信号をテストベクトルとして与えたときのDSPの出力信号を検討しましょう。同じフィルタに同じ入力信号を加えた時の出力をMATLABシミュレーションにより生成し、DSPの出力を比べます。DSPへのフィルタプログラムの実装が正しければ、2つの出力はほとんど同一になります。この比較を行うために、MATLABで信号波形を生成し、それをテストベクトルとして保存します。このテストベクトルをDSPに実装したフィルタに加え、その出力信号をMATLABシミュレーションとの比較のために、MATLABに取り込みます。
+	  </para>
+
+	  <para id="p36">　テストベクトルを利用する第一歩は適切な入力信号を生成することです。これを行う1つの方法は、MATLABの掃引正弦波発生関数を利用して、対象とする周波数帯域を掃引する正弦波信号を発生することです。以下のMATLAB関数<link resource="save_test_vector.m">save_test_vector.m</link>により、DSPのコードにインクルードする掃引正弦波信号をファイルに保存できます。
+	  </para>
+
+	  <para id="p36b">　以下のMATLABコマンドにより、掃引正弦波を生成するとともにDSP用のテストベクトルとしてファイルに保存してください。
+	  </para>
+
+	  <code id="id1170259325540" display="block">
+	    
+	    &gt;&gt; t=sweep(0.1*pi,0.9*pi,0.25,500);    % Generate a frequency sweep
+	    &gt;&gt; save_test_vector('testvect.asm',t); % Save the test vector
+	    
+	  </code>
+
+	  <para id="p37">次に、MATLABの<code>conv</code>コマンドを使用して、MATLABシミュレーションにより出力信号を生成します。具体的には、掃引正弦波信号を入力信号として前述の<code>gen_filt</code>を使って生成したフィルタ係数
+	    <m:math>
+	      <m:ci>h</m:ci>
+	    </m:math>
+との畳み込み演算を行います。この結果として、長さ507(
+
+	    <m:math>
+	      <m:apply>
+		<m:minus/>
+		<m:apply>
+		  <m:plus/>
+		  <m:ci>n</m:ci>
+		  <m:ci>m</m:ci>
+		</m:apply>
+		<m:cn>1</m:cn>
+	      </m:apply>
+	    </m:math>,
+
+	    <m:math>
+	      <m:ci>n</m:ci>
+	    </m:math>
+
+はフィルタの長さで、
+
+	    <m:math>
+	      <m:ci>m</m:ci>
+	    </m:math>
+
+は入力の長さ）)サンプルのベクトルが生成されます。このベクトルの最初の500サンプルの要素だけを保管して下さい。ちなみに、<code>help conv</code>とMATLABのコマンドウインドウでタイプすると、<code>conv</code>関数に関する情報を得ることができます。
+	  </para>
+
+	  <code id="id1170263574458" display="block">
+	    
+	    &gt;&gt; out=conv(h,t)                       % Filter t with FIR filter h
+	    &gt;&gt; out=out(1:500)                      % Keep first 500 elements of out
+	    
+	  </code>
+
+	  <para id="p38">次にもう一つの「テストベクトル」コアファイル<link resource="vectcore.asm">vectcore.asm</link>を使用するように<code>filter.asm</code>ファイルを修正します。DSPの通常動作時のようにA/D 変換器から入力信号を取得したりD/A変換器に出力を渡すのではなく、このコアファイルはその入力をDSP上のメモリから取り出し、またその出力をDSPの上のメモリに保存します。テストベクトルは、DSP評価ボード上のメモリの１ブロックで、あなたのプログラム・コードあるいはデータを邪魔することがないアドレスに格納されます。
+<note id="id4210967" type="注:"><label>注:</label>テスト・ベクトルは<code>.etext</code>セクションに格納されます。メモリマップを含むDSPのメモリ・セクションの詳細については、<link document="m10513">CORE FILE:SIX-CHANNEL BOARD FOR TI EVM320C54</link>を参照して下さい。</note>
+
+そのテスト・ベクトルを保管するメモリ・ブロックは4,000要素までのベクトルを保管するのに十分な大きさです。 テスト・ベクトルは、入力チャネルのためのデータ、および6つの出力チャンネルすべてからのデータを格納します。
+	  </para>
+
+	  <para id="p40">　テスト・ベクトルとともにプログラムを実行するために、<code>filter.asm</code>を修正する必要があるでしょう。このアセンブリソースは単純なテキストファイルですので、WordPad、Emacsおよび vi など、あなたのお好きなエディターを使用して編集することができます。そのファイルの第1行を次の2行に置き換えてください。
+
+　すなわち；
+	  </para>
+
+	  <code id="codeblock1" display="block">
+	    
+	    .copy 	"core.asm"
+	    
+	  </code>
+
+	  <para id="para40b">
+の代わりに、
+	  </para>
+
+	  <code id="codeblock2" display="block">
+	    
+	    .copy 	"testvect.asm"
+	    .copy	"vectcore.asm"
+	    
+	  </code>
+
+          <para id="para40b-1">の２行を使用して下さい。
+          </para>
+
+	  <para id="para40c">予約語<code>.copy</code>の前の空白は、通常通り必要です。
+	  </para>
+
+	  <para id="para40d">これらの変更は、作成したテスト・ベクトルにコピーされ、もう一方のコアファイルが利用されます。あなたのコードを修正した後に、それをアセンブルし、そしてこれまで通りCode Composerを使ってファイルをDSPにロードして実行してください。数秒後に、(<code>デバッグ</code>メニューにある <code>停止</code>コマンド使用して）DSPを停止させ、DSPがそれ自体に分岐する分岐文で停止したことを確認します。逆アセンブラウィンドウで、次の行 <code>0000:611F F073 B 611fh</code> が強調表示されているはずです。
+	  </para>
+
+	  <para id="p41">
+次に、テスト出力ファイルを保存して、MATLABにそれをロードして下さい。プログラムメモリの0x8000 の場所で始まる最初に保存された3,000メモリ要素(6チャンネルX 500サンプル)によって行うことができます。これをコードコンポーザスタジオ中で<code>File-&gt;Data-&gt;Save...</code>と選び、そしてファイル名を<code>output.dat</code>と入力し<code>Enter</code>を押します。次に、ポップアップしたダイアログ・ボックスのアドレス・フィールドに<code>0x8000</code> と、長さフィールドに<code>3000</code>と入力し、ページの隣にあるドロップダウンメニューからプログラムを選びます。結果を保存する場合、正しい長さ(6Xテスト・ベクトルの長さ)を使用することを常に確かめてください。
+	  </para>
+
+	  <para id="p42">
+最後に、MATLABへ保存された結果を読み込むための<code>read_vector</code>機能(<link resource="read_vector.m">read_vector.m</link> として 利用可能)を使用して下さい。これを次のMATLABコマンド:
+	  </para>
+
+	  <code id="id1170260473632" display="block">
+	    
+	    &gt;&gt; [ch1, ch2] = read_vector('output.dat');
+	    
+	  </code>
+
+          <para id="p42a">
+を使って実行しなさい。
+          </para>
+
+	  <para id="p43">
+MATLABベクトル <code>ch1</code>は、生成したテスト信号のフィルタされたバージョンに一致します。MATLABベクトル <code>ch2</code>は、DSPシステムの入力から、その変わらない出力へ通された時に生成したテスト・ベクトルとほとんど同一です。
+
+<note id="id1170260343275" type="注:"><label>注:</label>DSPの16ビットメモリへテスト・ベクトルを保存する際に導入された量子化エラーのために、ベクトル<code>ch2</code>はテスト・ベクトルが生成されたMATLAB と同一になりません。</note>
+	  </para>
+
+	  <para id="p44">
+MATLABにフィルタの出力をロードした後に、(上記の<code>out</code>として計算された)予期された出力と（上記から<code>ch1</code>の中の)フィルタの出力を比較して下さい。同じ軸上の2本の曲線を単にプロットすることによりグラフにより比較することが出来ます。例えば:
+	  </para>
+
+	  <code id="id1170263789360" display="block">
+	    
+	    &gt;&gt; plot(out,'r'); % Plot the expected curve in red 
+	    &gt;&gt; hold on        % Plot the next plot on top of this one 
+	    &gt;&gt; plot(ch1,'g'); % Plot the expected curve in green 
+	    &gt;&gt; hold off 
+	    
+	  </code>
+
+	  <para id="p47">
+2つの出力間の違いが0に近いことも確認して下さい。これは、2つのベクトル間の違いをプロットすることにより確認出来ます:
+	  </para>
+
+	  <code id="id2961793" display="block">
+	    
+	    &gt;&gt; plot(out-ch1); % Plot error signal 
+	    
+	  </code>
+
+	  <para id="p48">
+2つのシーケンスが正確に同じではないことを観測するでしょう。これはMATLABがその算術のために64ビットの浮動小数点を使用している間、DSPが16ビットの精度に対する反応を計算するためです。
+	  </para>
+
+	  <para id="p49">
+このように2つのベクトルを比較するために、2つのベクトルが、上記のMATLABコマンド<code>out=out(1:500)</code>を使用した後に確認される長さが、正確に一致しなければなりません。
+	  </para>
+
+	</section>
+      </section>
+    </content>
+  </document>

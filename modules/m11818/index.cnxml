@@ -1,0 +1,33 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Preface to DSP Lab International Demo</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>4f139206-75df-4487-827f-b8912d7a4c5a</md:uuid>
+</metadata>
+
+  <content>
+    <para id="p1">
+       This course is a demonstration course to show DSP-related content in languages other than English. It is intended to serve the following purposes:
+	
+	<list id="list1" list-type="enumerated">
+		<item>To spread DSP technology and help establish DSP lab courses outside the US.</item>
+		<item>To show that Connexions can support other languages and fonts, especially Asian.</item>
+		<item>To demonstrate the Connexions project to those in other countries.</item>
+	</list>
+    </para>
+    <para id="p2">
+    	For this demonstration course, content has been prepared in the following languages:
+	<list id="list2" list-type="bulleted">
+		<item>Japanese</item>
+		<item>Chinese (Mandarin)</item>
+		<item>Thai</item>
+	</list>
+    </para>
+    <para id="p3">
+    	All of the original material for this demonstration course has been taken from Doug Jones' ECE320 at UIUC, which is a senior-level DSP lab course based on the Texas Instruments TMS320C54x. Many thanks to Doug and others at UIUC for their hard work in  preparing the original course material.
+	</para>
+
+	<para id="p4">
+	<note type="Important" id="idm2703600"><label>Important</label>In order to properly view all the content, you will need to install the necessary fonts for the Japanese, Chinese and Thai languages.</note>
+    </para>   
+  </content>
+  
+</document>

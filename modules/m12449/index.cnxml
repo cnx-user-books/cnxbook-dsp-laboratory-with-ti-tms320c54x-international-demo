@@ -1,0 +1,68 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Multirate Filtering: Implementation on TI TMS320C54x (Chinese Version)</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>f3cf8ac8-1e7b-40e6-959c-1dd1a417f179</md:uuid>
+</metadata>
+
+
+
+
+
+
+  <content>
+    <section id="sec3">
+      <title>多频采样系统的实现</title>
+      <para id="p10">
+	在实现<link document="m10024" target-id="fig1">Multirate Processing:
+	Introduction</link>中所描述的整个系统之前，我们建议你先设计一个只包含 FIR 1 和 FIR 2 而没有采样率压缩器和扩展器的的系统。在确认了该系统的响应正确后再实现整个多频采样系统并确认其整体响应。	首先，使用固定的压缩和扩展参数
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>D</m:ci>
+	    <m:ci>U</m:ci>
+	    <m:cn>4</m:cn>
+	  </m:apply>
+	</m:math>。然后可以通过MATLAB界面来调整该参数，并在编程时牢记所作的调整。
+      </para>
+
+      <section id="sec3a">
+	<title>采样率压缩处理</title>
+	<para id="p12">
+	  为了使系统在低采样率下工作，在程序代码中加入一个计数器。该计数器将决定采样率压缩处理何时开始工作，以及决定何时在滤波器 FIR 3 中加入0来实现采样率扩展。
+	</para>
+
+	<para id="p13">
+	  在实现多频采样系统时你可能需要用到以下指令：<code>addm</code> (add to
+	  memory)；<code>bc</code> (branch conditional)；<code>banz</code>
+	  (branch on auxiliary register not zero) 以及 <code>b</code>
+          (branch)。
+	</para>
+
+      </section>
+
+      <section id="sec3b">
+	<title>实时采样率调整及MATLAB界面</title>
+	<para id="p16">
+	  一个简单的图形用户界面（GUI：graphical user interface）可以通过串行口向DSP发送一个介于1和10之间的数字（程序代码<link resource="mrategui.m">mrategui.m</link>，同时需要
+	  <link resource="ser_snd.m">ser_snd.m</link>），用以实时改变采样率压缩和扩展参数。
+	</para>
+	<para id="p18">
+	  在MATLAB窗口中键入 <code>mrategui</code> 来运行GUI。一个数字和一个游标将会自动出现。调整游标将会改变发送到DSP的压缩和扩展参数。
+	</para>
+
+	<para id="p17">
+	  所提供的汇编代码将DSP从计算机收到的最后一个数字存贮在名为<code>hold</code>的内存单元中。因此你可以在该内存单元中找到最后的由GUI设定的压缩和扩展参数，除非你已经改变了代码的相关部分。你需要修改代码使得每当串行口收到一个新数字时压缩和扩展参数都会作响应的改变。如果收到的是"1"，整个系统应该工作在全采样率下；如果收到的是"10"，则系统在每次采样之间丢弃9个采样信号。
+	</para>
+	<para id="p14">
+	  注意宏 <code>READSER</code> 和 <code>WRITSER</code> 用来从串行口读取数据和发送数据至串行口，并覆盖 <code>AR0</code>、<code>AR1</code>、<code>AR2</code>和 <code>AR3</code>寄存器。因此你必须注意这些寄存器没有被程序所使用，或者在调用宏 <code>READSER</code> 和 <code>WRITSER</code>之前保存其中的数值。这可以通过使用 <code>mvdm</code> 和 <code>mvmd</code> 指令来完成。上述宏在每次被调用时都会重新设置寄存器 <code>AR1</code> 和 <code>AR3</code>，因此没必要在调用宏之前对这些寄存器作改变。同时需要注意还有 <code>BK</code> 和状态标记<code>TC</code>。
+	</para>
+
+	<para id="p15">
+	  关于宏 <code>READSER</code> 和
+	  <code>WRITSER</code> 的更多细节可以在 <link document="m10821">Core File: Serial Port Communication
+	  Between MATLAB and TI TMS320C54x</link> 中找到。
+	</para>
+
+      </section>
+    </section>
+  </content>
+</document>

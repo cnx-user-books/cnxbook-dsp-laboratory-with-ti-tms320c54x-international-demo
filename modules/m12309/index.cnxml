@@ -1,0 +1,118 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>FIR Filtering: Basic Assembly Exercise for TI TMS320C54x (中文版 Chinese Version)</title>
+
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>6bdbc1af-3c7a-4038-9c1e-028d8a1c39e9</md:uuid>
+</metadata>
+
+
+
+  
+  <content>
+    <section id="sec1">
+      <title>汇编练习</title>
+      <para id="p1">
+	分析下面的程序代码。可以参考 <link document="m10808">Two's Complement and Fractional Arithmetic
+	for 16-bit Processors</link>、<link document="m10806">Addressing Modes for TI TMS320C54x</link>、以及 <cite url="http://www-s.ti.com/sc/psheets/spru172c/spru172c.pdf"><cite-title>Mnemonic
+	Instruction Set</cite-title></cite> 等手册中的内容。
+      </para>
+      <code display="block" id="idp6823680">
+	
+	1  FIR_len .set    3
+	2
+	3  ; Assume: 
+	4  ;   BK = 3
+	5  ;   AR0 = 1
+	6  ;   AR2 = 1000h
+	7  ;   AR3 = 1004h
+	8  ;
+	9  ;   FRCT = 1
+	10
+	11      stl     A,*AR3+%
+	12      rptz    A,(FIR_len-1)
+	13      mac     *AR2+0%,*AR3+0%,A
+	
+      </code>
+      <para id="p2">
+	任何以"<code>;</code>" 开头的代码行均为注释。在这里，注释行告诉你在第一个指令<code>stl</code>执行前辅助寄存器<code>BK</code>、<code>AR0</code>、<code>AR2</code>和<code>AR3</code>中的内容。注意以 "<code>h</code>" 结尾或以 <code>0x</code> 开头的数字均为 <term>十六进制</term> 数值。
+      </para>
+      <example id="example1">
+	<para id="p2b">
+	  1000h 和0x1000 均表示十进制数值4096。
+	</para>
+      </example>
+      <para id="p3">
+	假设起始地址为<code>1000h</code>的内存中的初始数据为：
+      </para>
+      <figure id="tab1fig">
+	<media id="idp7420928" alt=""><image src="../../media/reg1.png" mime-type="image/png"/></media>
+	<caption>内存中的数据分配（执行前）</caption> 
+      </figure>
+      <para id="p3b">
+	在熟悉了<code>stl</code>、
+	<code>rptz</code> 和 <code>mac</code> 等指令后，逐行执行代码并将累加器 <code>A</code> 及辅助寄存器
+	<code>AR2</code> 和 <code>AR3</code> 中的数值记录在<link target-id="table2fig"/>所提供的表格中。另外，在三行指令全部运行之后将内存中的数值记录在 <link target-id="table3fig"/> 所提供的表格中。
+      </para>
+      <table frame="all" id="table2fig" summary="">
+	  <tgroup cols="4">
+	    <thead>
+	      <row>
+		<entry>A</entry>
+		<entry>AR2</entry>
+		<entry>AR3</entry>
+		<entry/>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><code>00 0000 8000h</code></entry>
+		<entry><code>1000h</code></entry>
+		<entry><code>1004h</code></entry>
+		<entry>at start of code</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after <code>stl</code> instruction</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after <code>rptz</code> instruction</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after first <code>mac</code> instruction</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>
+		  after second <code>mac</code> instruction
+		</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after third <code>mac</code> instruction</entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	<caption>执行结果</caption></table>
+      <para id="p4">
+	在练习过程中要注意累加器 <code>A</code> 是40位寄存器，而且乘法器是工作在 <term>分数算法模式（fractional arithmetic mode）</term>下。在这种模式下，所有DSP中的整数都被当作分数来处理，ALU（运算器）中整数乘法器的运算结果都会被左移一位。（在没有特别指明的情况下，认为所有练习中的乘法器都是工作在分数算法模式下。）所以如果仅仅执行将两个整数相乘的操作，运算器（通过<code>mac</code>指令）所产生的结果将是实际值的两倍。DSP的数值表示及算法在<link document="m10808">Two's Complement and Fractional Arithmetic
+	for 16-bit Processors</link>中有更详细的描述。
+      </para>
+      <figure id="table3fig">
+	<media id="idm201360" alt=""><image src="../../media/reg2.png" mime-type="image/png"/></media> 
+	<caption>内存中的数据分配（执行前）</caption>
+      </figure>
+    </section>
+  </content>
+</document>

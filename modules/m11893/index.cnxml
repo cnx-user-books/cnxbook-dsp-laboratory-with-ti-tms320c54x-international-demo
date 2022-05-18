@@ -1,0 +1,343 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+    
+    <title>Lab 0: Hardware Introduction</title>
+    <metadata>
+  <md:content-id>m11893</md:content-id><md:title>Lab 0: Hardware Introduction</md:title>
+  <md:abstract>This exercise introduces the hardware and software used in the course. By the end of this module, you should be comfortable with the basics of testing a simple real-time DSP system with Code Composer Studio, the debugging environment we will be using throughout the semester. First you will connect the laboratory equipment and test a real-time DSP system with provided code to implement an eight-tap (eight coefficient) finite impulse response (FIR) filter. With
+a working system available, you will then begin to explore the debugging software used for downloading, modifying,
+and testing your code. Finally, you will create a filter in MATLAB and use test vectors to verify the DSP's output.
+</md:abstract>
+  <md:uuid>8f27e39f-06cc-4a11-ba71-9a04f9794cbd</md:uuid>
+</metadata>
+
+<content>
+      <section id="intro">
+	<title>引言</title>
+	<para id="introp1">
+本练习介绍了测试一个简单的DSP系统所使用的硬件和软件。你将学会在本课程所使用的调试环境中对一个简单的实时DSP系统进行测试的基本操作。首先你需要把实验装备连接好，并用现成的代码去实现一个8参数的<term>FIR滤波器</term>，以此来测试一个实时DSP系统。如果一切工作正常的话你将开始熟悉如何用调试软件来下载、修改和测试你的代码。最后，在MATLAB中进一步熟悉相关操作。
+	</para>
+      </section>
+      
+      <section id="sec1">
+	<title>实验装备</title>
+	<para id="p1">
+本练习要求实验室装备有安装在Spectrum Digital TMS320LC54x分析板上的Texas Instruments TMS320C549数字信号处理芯片。与该DSP分析器连接的微机(PC)使用Windows操作系统并以Code Composer Studio为测试开发环境。每个DSP分析器顶部的Spectrum Digital声音模块采用Crystal Semiconductor CS4226作为编解码器。该分析板提供了两个模拟输入通道和六个模拟输出通道，都采用44.1 kHz的CD音频采样率。该DSP分析板还可通过串行口与用户程序或微机终端仿真程序通信。
+	</para>
+	<para id="p2">
+除了DSP分析器和微机外，每个实验室还应装备信号发生器用以产生测试信号以及示波器用以显示被分析的波形。
+	</para>
+	
+	<section id="sec1a">
+	  <title>步骤1: 连线</title>
+	  <para id="p3">
+用BNC电缆把信号发生器的输出与DSP分析板的输入通道1相连。把分析板的输出通道1和2与示波器相连。输入输出的连接如<link target-id="fig1"/>所示。.
+	  </para>
+	  <figure id="fig1">
+	    <title>硬件连接示例</title>
+	    <media id="id1170837142483" alt="">
+              <image src="../../media/setup.png" mime-type="image/png"/>
+              <image for="pdf" src="../../media/setup.eps" mime-type="application/postscript"/>
+            </media>
+	  </figure>
+	  <para id="p4">
+注意以这种方式连线只有一路信号进入DSP，两路信号从DSP出来。通道1出来的是被滤波后的输入信号，而通道2出来的是没被滤波的输入信号。这样可以使你同时在示波器上观察原始输入信号及经过滤波的输出信号。打开信号发生器和示波器电源。
+
+	  </para>
+	</section>
+
+	<section id="sec1b">
+	  <title>步骤2: 登录</title>
+	  <para id="p5">
+	    用所提供的网络帐号和密码登录进入实验工作站上的微机。
+	  </para>
+	</section>
+      </section>
+      
+      <section id="sec2">
+	<title>开发环境</title>
+	<para id="p8">
+该DSP分析板是由微机通过JTAG接口(XDS510PP)并使用Code Composer Studio控制的。此开发环境允许用户下载、运行和调试在微机上完成的汇编代码。下面的步骤将使你通过使用所提供的FIR滤波器代码来熟悉来调试环境和实时系统（<link target-id="sec2a">步骤3、4、5</link>），然后通过接下来的MATLAB练习来验证该过滤器的频率响应（<link target-id="sec2d">步骤 6、7</link>）。
+	</para>
+
+	<section id="sec2a">
+	  <title>步骤3：汇编滤波器程序代码</title>
+	  <para id="p9">
+在执行和测试所提供的FIR滤波器程序代码前，你必须完成源文件的汇编。首先，打开一个DOS窗口创建一个新的目录来存放有关文件，然后将<link resource="filter.asm">filter.asm</link>, <link resource="coef1.asm">coef1.asm</link>, <link resource="coef2.asm">coef2.asm</link>, <link resource="core.asm">core.asm</link>, 和 <link resource="vectcore.asm">vectcore.asm</link> 拷贝到你的目录中。
+
+	  </para>
+	  <para id="p10">
+接下来，拷贝一份<code>coef1.asm</code>并命名为“coef.asm”然后通过在<code>DOS</code>窗口中键入<code>asm filter</code>来汇编滤波器程序代码。汇编的过程是首先将FIR滤波器参数（存于<code>coef.asm</code>中）包括在汇编文件<code>filter.asm</code>内，然后编译并将结果生成一个名为<code>filter.out</code>的包含有可执行二进制代码的输出文件。
+  </para>
+	</section>
+	
+	<section id="sec2b">
+	  <title>步骤4: 校验滤波器程序</title>
+	  <para id="p11">
+汇编完滤波器程序代码后，双击Code Compose图标进入程序调试环境。在载入代码前，你必须重启DSP分析板并初始化<term>processor mode status register</term>（<term>PMST，处理器模式状态寄存器</term>）。从Code Composer的<code>Debug</code>菜单选择<code>Reset</code>来进行重启。
+
+	  </para>
+	  <para id="p12">
+分析板重启后，从<code>View</code>菜单选择<code>CPU Registers</code>来打开显示DSP寄存器数值的小窗口，该小窗口将出现在Code Composer窗口的底部。找到<code>PMST</code>寄存器。它必须被设成十六进制的数值<code>FFE0</code>以确保DSP分析板正常工作。如果发现设置不正确，双击该数值并在弹出的<code>Edit Register</code>窗口中做相应的修改。
+
+	  </para>
+	  <para id="p13">
+现在，选择<code>File</code>菜单中的<code>Load Program</code>来载入滤波器程序的汇编代码。最后，再次重启DSP板，选择<code>Debug</code>菜单中的<code>Run</code>来运行该程序。
+
+	  </para>
+	  <para id="p14">
+所运行程序的输入值将来自输入通道1(input channel 1)，经过滤波的信号和原始输入信号将分别被送至输出通道1和2(output channel 1 and 2)。注意由于模数/数模转换过程中的失真，由输出通道2送出的原始信号可能和由输入通道1进入的信号不完全相同。该六声道（通道）模数/数模转换器运行在44.1kHz的采样率，并具有<term>抗锯齿</term>(<term>anti-aliasing</term>)滤波器和<term>抗假像</term>(<term>anti-imaging</term>)滤波器。并且转换器是<term>交连耦合</term>(<term>AC coupled</term>)的，直流信号无法通过。在这种情况下，你认为输入通道1和输出通道2之间会有什么样的差别？
+	  </para>
+	  <para id="p15">
+把信号发生器的峰峰值设成1.0V，波形设成正弦波。在一定范围内改变滤波器的输入频率并观察其频率响应。在44.1 kHz的采样率下，DSP系统的频率响应范围应是多大？
+	  </para>
+	  
+	  <para id="p17">
+根据你所观察到的频率响应确定滤波器的类型(低通、高通或带通)并确定-6dB(半高)截止频率。这在进行示波器通道2的触发设置时可能会有用，因为通道1的信号可能会是零。
+	  </para>
+	</section>
+
+	<section id="sec2c">
+	  <title>步骤5: 汇编和运行新的滤波器程序</title>
+	  <para id="p18">
+在确定了DSP所实现的滤波器的类型之后，你就可以通过在汇编过程中使用不同的参数来实现新的滤波器。文件<code>coef2.asm</code>中含有不同的参数。拷贝一份<code>coef2.asm</code>并命名为<code>coef.asm</code>。
+
+	  </para>
+	  <para id="p19">
+现在你可以汇编并测试这个新的滤波器程序，并像在<link target-id="sec2b">步骤4</link>中那样按<code>DOS</code>窗口中的汇编步骤来执行滤波器代码。
+
+	  </para>
+	  <para id="p20a">
+与<link target-id="sec2b">步骤4</link>类似，通过在不同的频率下运行程序来确定滤波器的类型及其-6dB截至频率。
+
+	  </para>
+	</section>
+	
+	<section id="sec2d">
+	  <title>步骤6：在MATLAB中检验滤波器的频率响应</title>
+	  <para id="p20b">
+在本步骤中，你将通过将滤波器参数从DSP拷贝到MATLAB中并用<code>freqz</code>命令显示其频率响应幅值来验证该滤波器的频率响应特性。
+	  </para>
+	  <para id="p21">
+文件<code>coef.asm</code>中所包含的FIR滤波器参数被放在位于<code>0x1000</code>（十六进制）的DSP内存中。你所汇编和运行的每一个滤波器程序有八个参数。选择<code>View</code>菜单中的<code>Memory</code>来打开一个<code>Memory Window Options</code>窗口来查看所用参数的整数数值。将起始地址设为<code>0x1000</code>，格式设为<code>16-Bit Signed Int</code>。点击“OK”便可打开显示指定地址内存中数值的窗口。左侧的数值显示的是内存地址。
+	  </para>
+	  <para id="p22">
+	    在这个例子中，滤波器参数在内存中以降序排列。即参数
+	    <m:math>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">h</m:ci>
+		<m:cn>7</m:cn>
+	      </m:apply>
+	    </m:math>位于 <code>0x1000</code> 而参数
+	    <m:math>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">h</m:ci>
+		<m:cn>0</m:cn>
+	      </m:apply>
+	    </m:math>位于<code>0x1007</code>。
+	  </para>
+	  <para id="p23">
+现在你已经在内存中找到了各参数的数值，接下来就可以用MATLAB中的freqz命令来显示滤波器的频率响应了。要使用<code>freqz</code>命令你必须先在MATLBAB中用滤波器参数创建一个矢量。例如，如果我们想知道一个系数为 -10, 20, -10 的三参数滤波器的频率响应，我们可以在MATLAB用如下命令：
+	    <list id="link2" list-type="bulleted">
+	      <item><code>h = [-10, 20, -10];</code></item>
+	      <item><code>plot(abs(freqz(h)))</code></item>
+	    </list>
+	  </para>
+	  <para id="p24">
+注意你将位于内存<code>0x1000</code>到<code>0x1007</code>中的八个参数值手动输入至参数矢量<m:math>
+	      <m:ci>h</m:ci>
+	    </m:math>。
+
+  </para>
+	  <para id="p25">
+观察MATLAB中显示的频率响应和你的实验结果有何异同？造成这种差异的可能原因是什么？
+	  </para>
+	</section>
+	
+	<section id="sec2e">
+	  <title>步骤7：在MATLAB中产生和检验新的滤波器</title>
+	  <para id="p26">
+实验室会提供一些MATLAB代码来帮助你编程。例如其中的一个程序使你可以将在MATLAB中产生的滤波器参数存成可以直接用在汇编程序中的形式，从而省去了手工输入这些参数的麻烦，这对于长度较大的滤波器尤为有用。这些程序或者已经被安装在了电脑上，或者按所提供的链接下载。
+	  </para>
+	  <para id="p27">
+首先，在MATLAB中键入<code>h = gen_filt;</code>来产生一个随机的八参数滤波器。然后键入<code>save_coef('coef.asm',flipud(h));</code>来保存该滤波器参数矢量，注意存入自己的目录中。（执行这些操作的代码可在<link resource="gen_filt.m">gen_filt.m</link> 和 <link resource="save_coef.m">save_coef.m</link>中找到。）
+	  </para>
+	  <para id="p28">
+MATLAB程序会将参数矢量<m:math>
+	      <m:ci>h</m:ci>
+	    </m:math>存成指定的文件(在这里是<code>coef.asm</code>)。注意在保存之前这些参数将被“翻转”以使得它们以倒序存贮在从<code>0x1000</code>到<code>0x1007</code>的内存中。
+	  </para>
+	  <para id="p29">
+现在你可以按<link target-id="sec2c">步骤5</link>那样重新汇编和运行这个新的滤波器程序。
+	  </para>
+	  <para id="p30">
+注意在载入新的滤波器程序时内存<code>0x1000</code>到<code>0x1007</code>中的内容会作相应的更新。
+	  </para>
+	</section>
+	<section id="sec2f">
+	  <title>步骤8：在内存中调整滤波器参数</title>
+	  <para id="p31">
+利用调试工具不但可以查看DSP内存中的数值，还可以对任何地址中的内容作修改，只需双击某内存地址并在弹出的窗口中作相应的修改。
+	  </para>
+	  <para id="p32a">
+修改<code>0x1000</code>至<code>0x1007</code>内存中的数值使其用于实现一个可以线性改变输入信号大小并产生一定偏移的滤波器：
+	    <equation id="eqn1">
+	      <m:math>
+		<m:apply>
+		  <m:eq/>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">h</m:ci>
+		    <m:ci>n</m:ci>
+		  </m:apply>
+		  <m:apply>
+		    <m:times/>
+		    <m:cn>8192</m:cn>
+		    <m:apply>
+		      <m:ci>δ</m:ci>
+		      <m:apply>
+			<m:minus/>
+			<m:ci>n</m:ci>
+			<m:cn>4</m:cn>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:math>
+	    </equation> 
+
+注意DSP会将整数8192除以32,768（十六位二进制寄存器可能存贮的最大整数）来生成一个分数。因此输出结果将会被延迟四个采样点并被乘以系数<m:math>
+	      <m:cn type="rational">1<m:sep/>4</m:cn>
+	    </m:math>。关于DSP如何处理数字的更多信息可以参考<link document="m10808">Two's
+	    Complement and Fractional Arithmetic for 16-bit
+	    Processors</link>。
+	  </para>
+	  <para id="p32b">
+修改完所有八个参数后，运行新的滤波器程序并用示波器测量输入波形和输出波形之间的偏移。
+	  </para>
+	  <para id="p33">
+如果改变线性系数和偏移量你会看到怎样的输出？六个采样点的偏移在时间上对应几秒？
+	  </para>
+	</section>
+
+	<section id="sec2g">
+	  <title>步骤9：通过检测矢量进行模拟</title>
+	  <para id="p34">
+最后的练习是用一个检测矢量作为输入来观察其输出。然后你就可以将此输出信号和用MATLAB以同样的滤波器处理同样的输入信号所得到的输出信号作比较。如果DSP所实现的滤波器是正确的，则两个输出应该是几乎一样的。为此，你要先在MATLAB中产生一个波形信号并把它存为一个检测矢量。然后用该检测矢量作为输入在DSP上运行滤波器，并把结果输出到MATLAB中和在MATLAB中该滤波器的模拟结果作比较。
+	  </para>
+	  <para id="p36">
+使用检测矢量的第一步是产生一个合适的输入信号。一个方法是使用MATLAB中的<code>sweep</code>函数（参见<link resource="sweep.m">sweep.m</link>）来产生一个跨越一定频段的正弦波。MATLAB函数<code>save_test_vector</code> （参见<link resource="save_test_vector.m">save_test_vector.m</link>）可以将产生的正弦波存成一个可被直接用于DSP代码的文件。
+	  </para>
+	  <para id="p36b">
+在MATLAB中产生和保存这样一个正弦多频波可以使用如下命令：
+	  </para>
+	  <code id="id1170832926626" display="block">
+	    
+	    &gt;&gt; t=sweep(0.1*pi,0.9*pi,0.25,500);    % Generate a frequency sweep
+	    &gt;&gt; save_test_vector('testvect.asm',t); % Save the test vector
+	    
+	  </code>
+	  <para id="p37">
+接下来，使用MATLAB中的<code>conv</code>命令来生成上面由<code>gen_filt</code>所产生的滤波器<m:math>
+	      <m:ci>h</m:ci> 
+	    </m:math>对该正弦多频波的模拟响应。注意该操作将生成一个长度为507（
+	    <m:math>
+	      <m:apply>
+		<m:minus/>
+		<m:apply>
+		  <m:plus/>
+		  <m:ci>n</m:ci>
+		  <m:ci>m</m:ci>
+		</m:apply>
+		<m:cn>1</m:cn>
+	      </m:apply>
+	    </m:math>，
+	    <m:math>
+	      <m:ci>n</m:ci>
+	    </m:math>是滤波器的长度，<m:math>
+	      <m:ci>m</m:ci>
+	    </m:math>是输入信号矢量的长度）的矢量。你应只保留此矢量的前500个分量。
+	  </para>
+	  <code id="id1170838556738" display="block">
+	    
+	    &gt;&gt; out=conv(h,t)                       % Filter t with FIR filter h
+	    &gt;&gt; out=out(1:500)                      % Keep first 500 elements of out
+	    
+	  </code>
+	  <para id="p38">
+现在我们需要修改文件<code>filter.asm</code>来使用检测矢量核心文件<link resource="vectcore.asm">vectcore.asm</link>。该核心文件所使用的输入输出数据都位于DSP的内存中，而不是从模/数转换器(A/D)获取输入信号并将输出信号送到数/模转换器(D/A)。检测矢量被存贮在DSP内存中特定的部分，不会影响滤波器程序代码及其数据。
+	    <note id="id1170832811416" type="注意"><label>注意</label>检测矢量被存贮在名为
+	    <code>.etext</code>的内存部分中。关于DSP内存分布的细节可参见<link document="m10513">Core File: Introduction to Six-Channel
+	    Board for TI EVM320C54</link>。</note> 存贮检测矢量的内存部分可以容纳长达4000的矢量，既存贮输入信号数据，也存贮所有6个通道的输出信号数据。
+
+	  </para>
+	  <para id="p40">
+要使用测试矢量，你需要修改文件<code>filter.asm</code>。汇编源代码文件是简单的文本格式，你可以使用任何你喜欢的软件来编辑它，例如WordPad，Emacs，或VI。对文件的第一行作如下修改：
+          将
+	
+	  </para>
+	  <code id="codeblock1" display="block">
+	    
+	    .copy 	"core.asm"
+	    
+
+	  </code>
+	  <para id="para40b">
+	    改为：
+	  </para>
+	  <code id="codeblock2" display="block">
+	    
+	    .copy 	"testvect.asm"
+	    .copy	"vectcore.asm"
+	    
+
+	  </code>
+	  <para id="para40c">
+注意像往常一样不能省略<code>.copy</code>之前的空白部分。
+	  </para>
+	  <para id="para40d">
+这些改变将会把你生成的测试矢量拷贝进来并使用新的核心文件。完成代码的修改和汇编后，用Code Composer载入文件并运行。几秒钟后中止DSP（使用<code>Debug</code>菜单下的<code>Halt</code>命令），并确认DSP是中止在了指向自身的转移语句上（the DSP has halted at a branch statement that branches to itself）。在disassembly窗口中应有<code>0000:611F F073 B 611fh</code>高亮显示。
+	  </para>
+	  <para id="p41">
+接下来保存输出文件并载入MATLAB。首先保存位于<code>0x8000</code>的程序内存里的前3000个单元。在Code Composer Studio中选择<code>File-&gt;Data-&gt;Save...</code>，输入文件名<code>output.dat</code>并按<code>Enter</code>。然后在弹出的地址框中输入<code>0x8000</code>，在Length栏里输入<code>3000</code>，并在紧靠着<code>Page</code>的下拉菜单中选择<code>Program</code>。在保存结果时一定要确认所使用的长度正确（测试矢量长度乘6）。
+	  </para>
+	  <para id="p42">
+最后，使用<code>read_vector</code>（参见<link resource="read_vector.m">read_vector.m</link>）将所保存的结果读入MATLAB。使用如下命令：
+
+	  </para>
+	  <code id="id1170833150237" display="block">
+	    
+	    &gt;&gt; [ch1, ch2] = read_vector('output.dat');
+	    
+	  </code>
+	  <para id="p43">
+现在，MATLAB矢量<code>ch1</code>对应于经过过滤的测试矢量。MATLAB矢量<code>ch2</code>应与你所产生的测试矢量基本相同，它从DSP系统的输入端进入并被原封不动地送到输出端。 <note id="id1170838577164" type="注意"><label>注意</label>由于在将测试矢量存至DSP16位内存过程中引入的量化误差，实际上矢量<code>ch2</code>已经不可能与MATLAB产生的测试矢量完全相同了。</note>
+	  </para>
+	  <para id="p44">
+在将滤波器的输出载入MATLAB后，比较期待输出（<code>out</code>）和滤波器的实际输出（<code>ch1</code>）。你可以将这两个波形画在同一图中做比较。比如：
+	  </para>
+	  <code id="id1170832846921" display="block">
+	    
+	    &gt;&gt; plot(out,'r'); % Plot the expected curve in red 
+	    &gt;&gt; hold on        % Plot the next plot on top of this one 
+	    &gt;&gt; plot(ch1,'g'); % Plot the expected curve in green 
+	    &gt;&gt; hold off 
+	    
+	  </code>
+	  <para id="p47">
+你应确定两个输出波形之间的差别几乎为零。你可以用如下方法画出两个矢量的差：
+	  </para>
+	  <code id="id1170835000748" display="block">
+	    
+	    &gt;&gt; plot(out-ch1); % Plot error signal 
+	    
+	  </code>
+	  <para id="p48">
+你将看到这两者不会完全相同。原因是DSP使用的是16位精度；而MATLAB在计算中用的是64位浮点数。
+
+	  </para>
+	  <para id="p49">
+注意在用这种方法比较两个矢量时，两者的长度必须完全一样，上面所用的MATLAB命令<code>out=out(1:500)</code>可以确保这一点。
+	  </para>
+	</section>
+      </section>
+    </content>
+  </document>

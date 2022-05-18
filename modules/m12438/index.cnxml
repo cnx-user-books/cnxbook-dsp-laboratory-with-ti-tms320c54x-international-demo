@@ -1,0 +1,246 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Multirate Filtering: Filter-Design Exercise in MATLAB (Thai Version)</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>cbf69291-e6f2-471b-9382-9bdb3cff4f56</md:uuid>
+</metadata>
+
+
+
+
+  <content>
+      <section id="sec2b">
+	<title>Filter-Design Exercise</title>
+	<para id="p6">
+	  ใช้วิธี zero-placement , ออกแบบ FIR filters สำหรับ 
+	   multirate system ใน  <link document="m10024" target-id="fig1">Multirate Filtering: Introduction</link>.
+	  ให้นึกถึง 	<m:math>  <m:ci>z</m:ci>
+	</m:math>-transform ที่ มีความยาวของ FIR filter -
+	<m:math>
+	  <m:ci>N</m:ci>
+	</m:math>เป็น  polynomial ในรูป 
+	<m:math>
+	  <m:apply>
+	    <m:power/>
+	    <m:ci>z</m:ci>
+	    <m:cn>-1</m:cn>
+	  </m:apply>
+	</m:math>, โดยที่  polynomial ดังกล่าวสามารถแยกส่วนประกอบได้เป็นจำนวน
+	<m:math>
+	  <m:apply>
+	    <m:minus/>
+	    <m:ci>N</m:ci>
+	    <m:cn>1</m:cn>
+	  </m:apply>
+	</m:math>
+      </para>
+      <equation id="eqn3">
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:apply>
+	      <m:ci type="fn">H</m:ci>
+	      <m:ci>z</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:plus/>
+	      <m:ci><m:msub>
+		  <m:mi>h</m:mi>
+		  <m:mn>0</m:mn>
+		</m:msub></m:ci>
+	      <m:apply>
+		<m:times/>
+		<m:ci><m:msub>
+		    <m:mi>h</m:mi>
+		    <m:mn>1</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:apply>
+		<m:times/>
+		<m:ci><m:msub>
+		    <m:mi>h</m:mi>
+		    <m:mn>2</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-2</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:ci>⋯</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:times/>
+	      <m:apply>
+		<m:minus/>
+		<m:ci><m:msub>
+		    <m:mi>z</m:mi>
+		    <m:mn>1</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:apply>
+		<m:minus/>
+		<m:ci><m:msub>
+		    <m:mi>z</m:mi>
+		    <m:mn>2</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:apply>
+		<m:minus/>
+		<m:ci><m:msub>
+		    <m:mi>z</m:mi>
+		    <m:mn>3</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:ci>⋯</m:ci>
+	    </m:apply>
+	  </m:apply>
+	</m:math>
+      </equation>
+
+      <para id="p7">
+	ใช้ความสัมพันธ์นี้ในการออกแบบ  low-pass filter
+	(สำหรับ anti-aliasing และ anti-imaging filters ของ the multirate 
+	system) โดยการแทนที่ complex zeros ทั้ง 12 ตัวบน  unit circle ที่
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>3</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>8</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>,
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:pi/>
+	      <m:cn>2</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>,
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>5</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>8</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>, 
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>3</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>4</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>, 
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>7</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>8</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>, และ 
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:pi/>
+	  </m:apply>
+	</m:math>.  Filter ที่ออกแบบโดยวิธีนี้จะสามารถใช้ได้กับทั้ง
+	 FIR 1 และ FIR 3.  สำหรับ filter FIR 2 (operating
+	at the decimated rate), ใช้ equally-spaced zeros สี่ตัว บน 
+	unit circle ที่ตำแหน่ง
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:pi/>
+	      <m:cn>4</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math> และ
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>3</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>4</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>.  อย่าลืมปรับค่า  resulting filter
+	coefficients เพื่อให้แน่ใจว่าค่า  gain จะไม่เกินค่า exceed one  
+	at any frequency.
+      </para>
+
+      <para id="p8">
+	ออกแบบ  filter ของคุณ โดยการเขียน  MATLAB script เพื่อคำนวณค่า 
+	filter coefficients จากจุด zero location ที่ให้ไป.   MATLAB
+	function <code>poly</code>จะช่วยได้  ให้พิมพ์คำว่า 
+	<code>help poly</code> เพื่อเรียนรู้วิธีการใช้คำสั่ง
+      </para>
+
+      <para id="p9">
+        เมื่อคุณเลือก  coefficients ที่จะใช้สำหรับ filter ได้แล้ว, ใช้
+        MATLAB function <code>freqz</code> ในการสร้างกราฟ frequency
+        responses.  คุณจะพบว่า ช่วง frequency response ของ
+        filters เหล่านี้มี ช่วง  gain ที่มาก.  ทำการปรับค่า resulting filter
+        coefficients เพื่อให้แน่ใจว่า ค่า  frequency gain ที่มากที่สุดมีค่าน้อยกว่า
+        หรือเท่ากับ หนึ่ง โดยทำการหารค่า coefficients ด้วยค่าที่เหมาะสม
+        ค่า frequency responses ที่ได้ตรงกับที่คาดไว้หรือไม่โดยอิงจาก ตำแหน่ง
+       ศูนย์ใน  z-plane?
+      </para>
+    </section>
+  </content>
+  
+</document>

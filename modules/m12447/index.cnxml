@@ -1,0 +1,152 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>Lab 2: Prelab (part 1)</title>
+  <metadata>
+  <md:content-id>m12447</md:content-id><md:title>Lab 2: Prelab (part 1)</md:title>
+  <md:abstract>You will work through an example problem that explores the effects of sample-rate compression and expansion on the spectrum of a signal.</md:abstract>
+  <md:uuid>9a5182c9-6076-48d3-a557-2c38ca8e5608</md:uuid>
+</metadata>
+
+<content>
+    <section id="sec2a">
+      <title>多频采样理论练习</title>
+      <para id="p4">
+	考虑一个具有如 <link target-id="fig2"/> 所示DTFT 
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn">X</m:ci>
+	    <m:ci>ω</m:ci>
+	  </m:apply>
+	</m:math> 的采样信号。
+      </para>
+
+      <figure id="fig2">
+	<media id="id6477156" alt="">
+          <image src="../../media/prelab_input.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/prelab_input.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>  输入信号的DTFT。</caption>
+      </figure>
+
+      <para id="p5">
+	假设
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>U</m:ci>
+	    <m:ci>D</m:ci>
+	    <m:cn>3</m:cn>
+	  </m:apply>
+	</m:math>，使用一个信号在采样压缩和扩展之前与之后的关系 (<link target-id="eqn1"/> 和 <link target-id="eqn2"/>) 来画出该信号在通过如 <link target-id="fig3"/> 所示的系统（无滤波器）后的DTFT响应，包括中间响应（intermediate response）
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn">W</m:ci>
+	    <m:ci>ω</m:ci>
+	  </m:apply>
+	</m:math> 和最终响应（final response）<m:math>
+	  <m:apply>
+	    <m:ci type="fn">Y</m:ci>
+	    <m:ci>ω</m:ci>
+	  </m:apply>
+        </m:math>。注意从数字频率 
+        <m:math>
+          <m:ci>ω</m:ci>
+        </m:math> 到模拟频率的转换形式将依赖于采样率。因此 
+        <m:math>
+          <m:apply>
+            <m:ci type="fn">X</m:ci>
+            <m:ci>ω</m:ci>
+          </m:apply>
+        </m:math> 和
+        <m:math>
+          <m:apply>
+            <m:ci type="fn">W</m:ci>
+            <m:ci>ω</m:ci>
+          </m:apply>
+        </m:math>的转换形式将会不同。
+      </para>
+      
+      <equation id="eqn1">
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:apply>
+	      <m:ci type="fn">W</m:ci>
+	      <m:ci>ω</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:times/>
+	      <m:apply>
+		<m:divide/>
+		<m:cn>1</m:cn>
+		<m:ci>D</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:sum/>
+		<m:bvar>
+		  <m:ci>k</m:ci>
+		</m:bvar>
+		<m:lowlimit>
+		  <m:cn>0</m:cn>
+		</m:lowlimit>
+		<m:uplimit>
+		  <m:apply>
+		    <m:minus/>
+		    <m:ci>D</m:ci>
+		    <m:cn>1</m:cn>
+		  </m:apply>
+		</m:uplimit>
+		<m:apply>
+		  <m:ci type="fn">X</m:ci>
+		  <m:apply>
+		    <m:divide/>
+		    <m:apply>
+		      <m:plus/>
+		      <m:ci>ω</m:ci>
+		      <m:apply>
+			<m:times/>
+			<m:cn>2</m:cn>
+			<m:pi/>
+			<m:ci>k</m:ci>
+		      </m:apply>
+		    </m:apply>
+		    <m:ci>D</m:ci>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:apply>
+	</m:math>
+      </equation>
+
+      <equation id="eqn2">
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:apply>
+	      <m:ci type="fn">Y</m:ci>
+	      <m:ci>ω</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:ci type="fn">W</m:ci>
+	      <m:apply>
+		<m:times/>
+		<m:ci>U</m:ci>
+		<m:ci>ω</m:ci>
+	      </m:apply>
+	    </m:apply>
+	  </m:apply>
+	</m:math>
+      </equation>
+
+      <figure id="fig3">
+	<media id="id4435040" alt="">
+          <image src="../../media/prelab_sys.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/prelab_sys.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>多频采样系统</caption>
+      </figure>
+    </section>
+
+  </content>
+</document>

@@ -1,0 +1,201 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>FIR Filtering: Exercise for TI TMS320C54x (Chinese Version)</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>9daae4e2-2ddb-4ed9-b35b-83674d74c48f</md:uuid>
+</metadata>
+
+
+
+
+  <content>
+    <section id="sec1">
+      <title>引言</title>
+      <para id="para1a">
+	在本练习中，你将用DSP汇编语言来完成一个FIR（有限脉冲相应）滤波器。在开始之前，先来学习一        个基本的FIR滤波器汇编代码 <link document="m10017" resource="filter.asm">filter.asm</link>.
+      </para>
+      <code id="fig1" display="block" class="listing"><title>filter.asm</title>
+	   1	.copy "core.asm"  	; Copy in core file
+	  2   					; This initializes DSP and jumps to "main"
+	  3	
+	  4  FIR_len .set   8			; This is an 8-tap filter.
+	  5	
+	  6          .sect ".data"		; Flag following as data declarations
+	  7   
+	  8    	    .align 16			; Align to a multiple of 16
+	  9  coef					; assign label "coeff"
+	  10	    .copy "coef.asm"		; Copy in coefficients
+	  11
+	  12	    .align 16
+	  13 firstate
+	  14 	    .space 16*8			; Allocate 8 words of storage for
+	  15					; filter state.
+	  16
+	  17	    .sect ".text"		; Flag the following as program code
+	  18  main
+	  19      ; Initialize various pointers
+	  20	    stm    #FIR_len,BK		; initialize circular buffer length
+	  21	    stm    #coef,AR2    	; initialize coefficient pointer
+	  22	    stm	   #firstate,AR3	; initialize state pointer
+	  23	    stm    #1,AR0		; initialize AR0 for pointer increment
+	  24	
+	  25  loop
+	  26      ; Wait for a new block of 64 samples to come in
+	  27  	    WAITDATA
+	  28	
+	  29      ; BlockLen = the number of samples that come from WAITDATA (64)
+	  30    	    stm     #BlockLen-1, BRC	; Put repeat count into repeat counter
+	  31    	    rptb    endblock-1		; Repeat between here and 'endblock' 
+	  32
+	  33    	    ld	    *AR6,16, A		; Receive ch1 into A accumulator
+	  34    	    mar     *+AR6(2)            ; Rcv data is in every other channel
+	  35    	    ld      *AR6,16, B		; Receive ch2 into B accumulator
+	  36    	    mar     *+AR6(2)            ; Rcv data is in every other channel
+	  37    
+	  38    	    ld	    A,B			; Transfer A into B for safekeeping
+	  39
+	  40      ; The following code executes a single FIR filter.
+	  41	
+	  42    	    sth     A,*AR3+%		; store current input into state buffer
+	  43    	    rptz    A,(FIR_len-1)	; clear A and repeat
+	  44    	    mac     *AR2+0%,*AR3+0%,A	; multiply coef. by state &amp; accumulate
+	  45    
+	  46    	    rnd     A			; Round off value in 'A' to 16 bits                            
+	  47    
+	  48     ; end of FIR filter code. Output is in the high part of 'A.'
+	  49
+	  50    	    sth     A, *AR7+		; Store filter output (from A) into ch1
+	  51    	    sth     B, *AR7+		; Store saved input (from B) into ch2
+	  52    
+	  53    	    sth     B, *AR7+		; Store saved input to ch3...ch6 also
+	  54    	    sth     B, *AR7+		; ch4
+	  55    	    sth     B, *AR7+		; ch5 
+	  56    	    sth     B, *AR7+		; ch6
+	  57   
+	  58  endblock:
+	  59      b loop
+	</code>
+      <para id="p1">
+	<code>filter.asm</code> 将从输入通道1送来的信号用FIR滤波器处理后将结果送至输出通道1，并将原始信号送至输出通道2。
+      </para>
+      <para id="p2">
+	首先，在你的网络驱动器上创建一个工作目录来存放练习所需使用的文件，并将 <link document="m10017" resource="filter.asm">filter.asm</link> 
+	和 <link document="m10017" resource="core.asm">core.asm</link>
+	拷贝到该目录下。然后用MATLAB来产生两个20参数的FIR滤波器。第一个滤波器用以通过 4 kHz 和 8 kHz 之间的频段；第二个滤波器用以通过 8 kHz 和 12 kHz 之间的频段。两个滤波器频段边缘的过渡范围（transition band）都为1kHz。为生成滤波器，首先将频段边缘转化成基于系统 44.1 kHz 采样率的数字频率（digital frequencies），然后用MATLAB的
+	<code>remez</code> 命令来产生滤波器；你可以键入
+	<code>help remez</code> 来获取帮助信息。用
+	<code>save_coef</code> 命令将所产生的滤波器存为不同的文件。（注意在保存之前要将滤波器参数矢量倒置。）同时将你的滤波器存为MATLAB矩阵，以后生成检测矢量时需要用到。这些可以用MATLAB命令
+	<code>save</code> 来完成。在完成这些操作后，用
+	<code>freqz</code> 命令来显示每个滤波器的频率响应。
+      </para>
+    </section>
+    <section id="sec2">
+      <title>第一部分：单通道FIR滤波器</title>
+      <para id="p3">
+	现在来实现通频带为 4 kHz 到 8 kHz 的滤波器。你需要编辑 <code>filter.asm</code> 来将该滤波器所需使用的参数加入到程序代码中。
+      </para>
+      <para id="p4">
+	首先，本练习中FIR滤波器的长度是20而不是8。所以你需要将 <code>FIR_len</code> 改为20。使用 <code>.set</code> 指令来给符号名 <code>FIR_len</code> 分配一个数值。相应的改变为 <code>FIR_len .set 20</code>。
+      </para>
+      <para id="p5">
+	其次，你要确认 <code>.copy</code>
+	指令正确地将相应的的参数拷贝到程序代码中。将指示滤波器参数的文件名改为相应的实际包含参数的文件的名字。
+      </para>
+      <para id="p6">
+	最后，你要对 <code>.align</code> 和
+	<code>.space</code> 指令作相应的调整。TI TMS320C54x DSP要求存放寄存器参数和状态的循环缓存（circular buffers）的起始地址是一个大于缓存长度的2的幂的整数倍。由于你现在所使用的是20参数的滤波器（相应的状态及参数缓存长度也为20），大于该数值的最小的2的幂的整数倍为32。所以你要将状态缓存和参数缓存的地址都设为32的倍数。（16元素缓存（16-element buffers）也要求地址为32的整数倍。）该操作可通过 <code>.align</code> 命令来实现。此外，要为状态缓存保留相应的内存空间。该操作可通过 <code>.space</code> 命令来实现，输入值为所要分配空间的位（ <emphasis>bits</emphasis> ）数。因此，要为20参数的滤波器分配空间应使用指令 <code>.space 16*20</code>，如下所示：
+      </para>
+      <code display="block" id="idp2004928">
+	1         .align 32             % Align to a multiple of 32
+	2  coef   .copy  "filter1.asm"  % Copy FIR filter coefficients
+	3
+	4         .align 32             % Align to a multiple of 32
+	5  state  .space 16*20          % Allocate 20 words of data space
+      </code>
+      <para id="p7">
+	汇编你的代码，将 <code>PMST</code> 设为
+	<code>0xFFE0</code>，将DSP复位（reset），然后运行。确认所得到的频率响应正确。在确信该程序代码工作正常后，进入下一步骤。
+      </para>
+    </section>
+    <section id="sec3">
+      <title>第二部分：双通道FIR滤波器</title>
+      <para id="p9">
+	首先，拷贝一份在 <link target-id="sec2">第一部分</link> 中修改过的文件 <code>filter.asm</code>。在这个拷贝的基础上开始该部分练习，上一部分中的滤波器以后还要用到，不要作任何修改。
+      </para>
+      <para id="p10">
+	接下来，修改代码，使程序除了将经第一个滤波器（通频带 4 kHz 到 8 kHz）处理的结果送到输出通道1以及将未经滤波处理的信号送出通道2外，还将经第二个滤波器（通频带 8 kHz 到 12 kHz）处理的结果送到输出通道3。为此，你需要用 <code>.align</code> 和 <code>.copy</code>
+	指令将第二套参数载入到数据内存中。你还需要生成一个指向第二套参数的指针并进行第二个滤波器的有关运算。
+      </para>
+      <exercise id="new0">
+	<problem id="idp6316192">
+	  <title> 思考题</title> 
+	  <para id="new1"> 
+	    你能不使用辅助寄存器 <code>AR4</code> 和
+	    <code>AR5</code> 而实现双通道系统吗？为什么用这样的方法做会更困难？注意不能通过用 <code>.asg</code> 指令将
+	    <code>AR4</code> 和 <code>AR5</code> 改名的方法来实现。
+	  </para>
+	</problem>
+      </exercise>
+      <para id="p11">
+	使用 <link document="m10017">DSP
+	Development Environment: Introductory Exercise for TI
+	TMS320C54x</link> 中介绍的方法在MATLAB中产生一个合适的检测矢量和预期输出。然后使用 <link document="m10017">DSP
+	Development Environment: Introductory Exercise for TI
+	TMS320C54x</link> 中介绍的检测矢量核心文件来找出在给定该检测矢量时的系统输出。在MATLAB中画出两个滤波器的预期输出和实际输出以及它们之间的差别。为什么DSP系统的输出和MATLAB的输出会有不同？
+      </para>
+    </section>
+    <section id="sec5">
+      <title>第三部分：实现单通道滤波器的备选方案</title>
+      <para id="p12">
+	通过使用 <term><code>firs</code></term> 指令可通过另一途径实现单通道滤波器。修改 <link target-id="sec2">第一部分</link> 中的代码，用
+	<code>firs</code> 来实现通频带为 4 kHz 到 8 kHz 的滤波器。
+      </para>
+      <para id="p13">
+	 <link target-id="sec2">第一部分</link> 中的代码和现在你将要写的代码之间有两个区别：（1）使用 <code>firs</code> 指令时参数是被载入程序内存（program memory）而非数据内存（data memory）；（2） <code>firs</code> 要求状态（state）被分开并分别存在两个循环缓存中。关于 <code>firs</code> 的详细用法请参阅 <cite url="http://www-s.ti.com/sc/psheets/spru172c/spru172c.pdf"><cite-title>Mnemonic
+	Instruction Set</cite-title></cite> 手册的 <cite><cite-title> 4-59页</cite-title></cite> 以及位于 <cite url="http://www-s.ti.com/sc/psheets/spru173/spru173.pdf"><cite-title>Applications
+	Guide</cite-title></cite> 
+<cite><cite-title> 4-5 至 4-8 页 </cite-title></cite> 中有关的描述和示例（分别是<cite><cite-title>TMS320C54x DSP Reference
+	Set</cite-title></cite> 的 <cite><cite-title> Volume 2 和 Volume 4</cite-title></cite>）。
+      </para>
+      <para id="p14">
+	<code>AR0</code> 需要设置成-1才能确保该代码正常工作。为什么？
+	<note type="注意" id="idm7424704"><label>注意</label>现在<code>COEFF</code> 用于标示位于程序内存中的参数。请参阅关于
+<code>firs</code> 的描述。</note>
+      </para>
+      <code display="block" id="idm1132704">
+	
+	 
+	1	mvdd	*AR2,*AR3+0%		; write x(-N/2) over x(-N)
+	2	sth	A,*AR2			; write x(0) over x(-N/2)
+	3	add	*AR2+0%,*AR3+0%,A 	; add x(0) and x(-(N-1))
+	4					;   (prepare for first multiply)
+	5
+	6	rptz	B,#(FIR_len/2-1)  	  
+	7	firs	*AR2+0%,*AR3+0%,COEFF
+	8	mar	??????? 		; Fill in these two instructions
+	9	mar	???????			; They modify AR2 and AR3.
+	10
+	11					; note that the result is now in the
+	12					;  B accumulator
+      </code>
+      <para id="p15">
+	由于现在使用了与前面不同的方法来处理状态和参数，你需要对指针的初始化作如下修改：
+      </para>
+      <code display="block" id="idp175952">
+	
+	1	stm	#(FIR_len/2),BK		; initialize circular buffer length
+	2	stm	#firstate_,AR2		; initialize location containing first 
+	3					;   half of states
+	4
+	5	stm	#-1,AR0			; Initialize AR0 to -1
+	6
+	7	stm	#firstate2_,AR3	        ; initialize location containing last half
+	
+      </code>
+      <para id="p16">
+	使用检测矢量核心文件来找到该系统在给定与前面所使用的相同的检测矢量时的输出。比较该代码的输出和使用mac指令的同一滤波器的输出。它们是否一致？原因是什么？确认滤波器的输出被送到输出通道1，而未经处理的信号仍被送到输出通道2。
+
+
+      </para>
+    </section>
+  </content>
+</document>

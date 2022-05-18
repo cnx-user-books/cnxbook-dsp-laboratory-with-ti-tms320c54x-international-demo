@@ -1,0 +1,373 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+    
+    <title>Lab 0: Hardware Introduction</title>
+    <metadata>
+  <md:content-id>m11954</md:content-id><md:title>Lab 0: Hardware Introduction</md:title>
+  <md:abstract>This exercise introduces the hardware and software used in the course. By the end of this module, you should be comfortable with the basics of testing a simple real-time DSP system with Code Composer Studio, the debugging environment we will be using throughout the semester. First you will connect the laboratory equipment and test a real-time DSP system with provided code to implement an eight-tap (eight coefficient) finite impulse response (FIR) filter. With
+a working system available, you will then begin to explore the debugging software used for downloading, modifying,
+and testing your code. Finally, you will create a filter in MATLAB and use test vectors to verify the DSP's output.
+</md:abstract>
+  <md:uuid>864fd897-fecc-4691-80f4-e10f1b15c34f</md:uuid>
+</metadata>
+
+<content>
+      <section id="intro">
+	<title>คำนำ</title>
+	<para id="introp1">
+	  แบบฝึกหัดนี้เป็นการแนะนำฮาร์ดแวร์และซอฟท์แวร์ที่ใช้ในวิชานี้ในตอนท้ายของแบบฝึกหัดนั้น ผู้อ่านจะ สามารถเข้าใจพื้นฐานการปฏิการระบบประมวลผลสัญญาณดิจิตอล(DSP)แบบเรียลไทม์โดย Code Composer Studio ซึ่งเป็นสภาพแวดล้อมสำหรับทำการดีบัก ที่จะใช้ตลอดทั้งเทอมการศึกษา ขั้นแรกจะเป็นการเชื่อมต่ออุปกรณ์การทดลองและ ทำการทดสอบระบบประมวลผลสัญญาณดิจิตอล แบบเรียลไทม์ด้วยโค้ดที่เตรียมไว้ให้เพื่อจัดการกับ วงจรกรองแบบ ที่มีผลตอบสนองอิมพัลส์จำกัด (Finite Impulse Response: FIR) แบบ eight-tap (or eight coefficient) ด้วยสภาวะแวดล้อมนี้ทำให้ท่านสามารถเริ่มค้นหาซอฟ์ทแวร์ในการดีบักที่ใช้ในการดาว์นโหลด เปลี่ยนแปลง และทดสอบโค้ดของท่าน ท้ายที่สุดนั้นท่านจะสร้างวงจรกรองด้วย MATLAB และใช้ test vectors พิสูจน์ผลลัพท์ที่ให้จากระบบประมวลผลสัญญาณดิจิตอล
+
+	</para>
+      </section>
+      
+      <section id="sec1">
+	<title>เครื่องมือทำการทดลอง</title>
+	<para id="p1">
+	  แบบฝึกหัดนี้ถือเอาว่าท่านสามารถเข้าถึงห้องปฏิบัติการซึ่งประกอบไปด้วยเครื่องมือดั่ง Texas Instruments รุ่น TMS320C549 ซึ่งเป็นชิพประมวลผลสัญญาณดิจิตอลบนบอร์ดดิจิตอลสเปคตรัมรุ่น TMS320LC54x บอร์ด ( evaluation board) นี้จะต่อกับเครื่องคอมพิวเตอร์ระบบปฏิบัติการวินโดว์ส และสามารถควบคุมโดยแอพพลิเคชั่นของคอมพิวเตอร์อย่าง Code Composer Studio  ตัวดีบักและสภาพแวดล้อม ที่ใช้ในการทดลอง  ด้านบนของ บอร์ด DSP นี้จะเป็น Spectrum Digital surround-sound module ที่ใช้งาน Crystal Semiconductor CS4226 codec บอร์ดที่ใช้นี้มีอินพุทแบบอนาลอก  2 ช่องและเอาท์พุท แบบอนาลอกอีก 6 ช่องที่มี อัตรา CD พื้นฐานอยู่ที่ 44.1 kHz 
+บอร์ดประมวลผลสัญญาณดิจิตอลนี้ยังสามารถสื่อสารกับโค้ดของผู้ใช้งานหรือ Terminal Emulator ที่ปฏิบัติการอยู่บนเครื่องคอมพิวเตอร์ผ่านทางซีเรียล (Serial) พอร์ท   
+
+	</para>
+	<para id="p2">
+	  นอกจากบอร์ดประมวลผลสัญญาณดิจิตอลกับคอมพิวเตอร์แล้วนั้น ในแต่ละห้องปฏิบัติการณ์ยังควรที่จะมีการจัด Function Generator เพื่อการทดลองสัญญาณต่างๆ และ เครื่อง Oscilloscope เพื่อแสดงผลในรูปคลื่น
+	</para>
+	
+	<section id="sec1a">
+	  <title>ขั้นที่ 1: เชื่อมต่อสายเคเบิล</title>
+	  <para id="p3">
+	    นำสายเคเบิลที่มี BNC ต่อกับเอาท์พุทของ Function Generator กับอินพุทช่องที่หนึ่งของบอร์ด DSP จากนั้นเชื่อมเอาท์พุทช่องที่หนึ่งและสองของบอร์ดเข้ากับช่องที่หนึ่งและสองของเครื่อง Oscilloscope การเชื่อมต่ออินพุทและเอาท์พุทสำหรับ บอร์ดDSP แสดงดั่งรูปที่ 1 <link target-id="fig1"/>.
+	  </para>
+	  <figure id="fig1">
+	    <title>Example Hardware Setup</title>
+	    <media id="id1171775143198" alt="">
+              <image src="../../media/setup.png" mime-type="image/png"/>
+              <image for="pdf" src="../../media/setup.eps" mime-type="application/postscript"/>
+            </media>
+	  </figure>
+	  <para id="p4">
+	    มีข้อสังเกตุว่าในการติดตั้งข้างต้นนี้ จะมีเพียงสัญญาณเดียวเท่านั้นที่เข้าสู่ บอร์ดDSP และออกจากบอร์ดเป็นจำนวนสองสัญญาณ  เอาท์พุทจากช่องที่หนึ่งนั้นคือสัญญาณที่ถูกกรองแล้ว และเอาท์พุทจากช่องที่สองคือสัญญาณที่ไม่ได้ทำการกรอง  สิ่งนี้จะทำให้ท่านสามารถเห็นทั้งลักษณะสัญญาณที่เข้าสู่บอร์ด และ สัญญาณที่ได้รับหลังจากการกรองจากเครื่อง Oscilloscope  หลังจากนั้นให้เปิดเครื่อง Function Generator และ Oscilloscope 
+	  </para>
+	</section>
+
+	<section id="sec1b">
+	  <title>ขั้นที่ 2: การเข้าสู่การปฏิบัติการ</title>
+	  <para id="p5">
+	    ใช้เลขประจำตัวและรหัสที่กำหนดให้เพื่อทำการแสดงตัวเพื่อการใช้เครื่องคอมพิวเตอร์ในห้องปฏิบัติการ
+	  </para>
+	</section>
+      </section>
+      
+      <section id="sec2">
+	<title>The Development Environment</title>
+	<para id="p8">
+	  บอร์ดจะถูกควบคุมโดยคอมพิวเตอร์ผ่าน JTAG (XDS510PP) ที่ใช้ Code Composer Studio ในสภาพแวดล้อมเช่นนี้จะอนุญาตให้ผู้ใช้ดาวน์โหลด ประมวลผล และดีบักโค้ดบนเครื่องคอมพิวเตอร์ เพื่อความคุ้นเคยกับสภาพแวดล้อมที่ใช้ดีบักและระบบเรียลไทม์ที่ใช้วงจรกรองแบบที่มีผลตอบสนองอิมพัลส์จำกัดนั้นให้ทำตามขั้นตอนที่จะกล่าวต่อไป (ขั้นตอนที่ 3, 4 และ 5) แล้วทำการวิเคราะห์ผลตอบสนองความถี่ของตัวกรองด้วยแบบฝึกหัดที่ใช้ MATLAB (ขั้นที่ 6 และ 7) (<link target-id="sec2d">Steps 6 and 7</link>).
+	</para>
+
+	<section id="sec2a">
+	  <title>ขั้นที่ 3: Assemble filter code</title>
+	  <para id="p9">
+	    ก่อนที่จะทำการปฏิบัติการและทดสอบโค้ดของวงจรกรองแบบที่มีผลตอบสนองอิมพัลส์จำกัดนั้น จะต้องมีการแอสเซมบลีไฟล์ต้นกำเนิด (Source File) ก่อน ลำดับแรกให้ใช้ <code>DOS</code> promptบนวินโดว์และสร้างไดเรคทอรี่ใหม่เพื่อเก็บไฟล์ หลังจากนั้นให้ทำสำเนาไฟล์  <link resource="filter.asm">filter.asm</link>, <link resource="coef1.asm">coef1.asm</link>, <link resource="coef2.asm">coef2.asm</link>, <link resource="core.asm">core.asm</link>, และ <link resource="vectcore.asm">vectcore.asm</link> ลงในไดเรคทอรี่นั้น
+	  </para>
+	  <para id="p10">
+	    ต่อจากนั้นให้ทำสำเนาไฟล์  <code>coef1.asm</code> ให้เป็นชื่อ 
+	    "coef.asm" และรวบรวมโค้ดตัวกรองเข้าโดยการพิมพ์ 
+	    <code>asm filter</code> บน <code>DOS</code> prompt.
+	    ขั้นตอนแรกในการรวบรวมนั้นรวมสัมปสิทธิ์ (coefficients)  ของวงจรกรองแบบที่มีผลตอบสนองอิมพัลส์จำกัด  (ซึ่งเก็บไว้ที่  <code>coef.asm</code>) iเข้าไปใน ไฟล์  <code>filter.asm</code>, แล้วก็ทำการคอมไพล์ผลเพื่อสร้างไฟล์เอาท์พุทที่มี ไบนารี่โค้ดที่พร้อมปฏิบัติการได้ในรูปของไฟล์ชื่อ <code>filter.out</code>.  </para>
+	</section>
+	
+	<section id="sec2b">
+	  <title>ขั้นที่ 4: วิเคราะห์การปฎิบัติการของตัวกรอง</title>
+	  <para id="p11">
+	    จากโค้ดที่ได้สร้างไว้ข้างต้นนั้น ให้คลิ้กที่ไอคอน Code Composer สองครั้งเพื่อเปิดสภาพแวดล้อมที่ใช้ทำการดีบัก  ก่อนที่จะทำการโหลดโค้ดนั้น จะต้องทำการติดตั้งบอร์ดDSP ใหม่  <term>processor mode status register</term>
+	    (<term>PMST</term>).  โดยการเลือก จากรายการ Debug ในแอพพลิเคชั่นของ Code Composer  
+	    <code>Reset</code> จากรายการ <code>Debug</code> ในแอพพลิเคชั่นของ Code Composer  
+	  </para>
+	  <para id="p12">
+	    เมื่อทำการติดตั้งบอร์ดเสร็จแล้ว ให้เลือก <code>CPU
+	    Registers</code> จากรายการ  <code>View</code> แล้วเลือก  <code>CPU Register</code>.  การทำเช่นนี้เพื่อเป็นการเปิดหน้าต่างย่อยที่ด้านล่างของหน้าต่างแอพพลิเคชั่นของ Code Composer ที่แสดง DSP registers ต่างๆ ตรวจสอบที่ <code>PMST</code> register ว่ามีค่าฐารสิบหกเป็น  <code>FFE0</code> เพื่อให้ บอร์ดDSP ทำงานได้อย่างถูกต้อง  ถ้าค่าไม่เป็นอย่างดังกล่าวนั้นให้เปลี่ยนค่า <code>PMST</code>
+	    register โดยการคลิ้กสองครั้งบนค่าที่ตั้งไว้และเปลี่ยนเป็นค่าที่ถูกต้องในหน้าต่าง  <code>Edit Register</code>
+	    ที่แสดงขึ้นมา  
+	  </para>
+	  <para id="p13">
+	    หลังจากนั้นให้ทำการโหลดไฟล์ตัวกรองที่รวบรวมไว้ข้างต้นโดยการเลือก <code>Load Program</code> จากรายการ 
+	    <code>File</code> ในท้ายสุดให้ติดตั้งค่า DSP ใหม่ และสั้งปฎิบัติการโค้ดโดยเลือก<code>Run</code> จากรายการ 
+	    <code>Debug</code> menu.
+
+	  </para>
+	  <para id="p14">
+	    โปรแกรมที่ท่านได้ทำการปฏิบัติการอยู่นั้นจะอนุญาตให้อินพุทจากอินพุทช่องที่หนึ่งผ่านและส่งรูปแบบคลื่นเอาท์พุทไปยังเอาท์พุทช่องที่หนึ่งและสอง (ซึ่งก็คือสัญญาณที่ถูกกรองและสัญญาณอินพุท ตามลำดับ) มีข้อสังเกตุว่า สัญญาณอินพุทที่ออกมาทางช่องที่สองนั้นอาจจะแตกต่างจากอินพุทที่เข้าไปทางช่องที่หนึ่ง เนื่องจากเกิดการบิดเบือนจากการแปลงอินพุทที่เป็นอนาลอกให้กลายเป็นดิจิตอลและเปลี่ยนกลับไปเป็นอนาลอกอีกครั้งหนึ่ง ตัวเปลี่ยนอนาลอกเป็นดิจิตอลและ ดิจิตอลเป็นอนาลอกที่อยู่ในทั้งหกช่องนั้นรอบตัวบอร์ดนั้นทำงานที่อัตราพื้นฐานของ 44.1 กิโลเฮิร์ธ และมีตัวกรองแบบ
+	    <term>anti-aliasing filter</term> และ
+	    <term>anti-imaging filter</term>, ตามลำดับ นั้นคือตามแผนการนั้นจะสามารถขจัดความถี่ที่มากกว่า 22.05 กิโลเฮิร์ธ ตัวแปลงบนทั้งหกช่องของบอร์ดนั้นยังเป็นคู่กระแสสลับ <term>AC coupled</term> และไม่สามารถผ่านสัญญาณกระแสตรงได้
+	    จากข้อมูลเบื้องต้นนั้นอะไรคือสิ่งที่แตกต่างระหว่างสัญญาณต่างๆจากอินพุทช่องที่หนุ่งและเอาท์พุทช่องที่สองที่ท่านคาดหวังไว้นั้น
+	  </para>
+	  <para id="p15">
+	    ตั้งค่าขนาดสูงของความถี่ใน Function Generator เป็น 10 โวล์ทจากจุดสูงสุดและต่ำสุด และตั้งรูปคลื่นพ้อลส์ (pulse) ให้เป็นรูปคลื่นไซด์ (Sinusoidal)  สังเกตุผลตอบสนองความถี่ของตัวกรองโดยการเปลี่ยนสัญญาณอินพุทตามความถี่เกี่ยวข้อง  อะไรคือช่วงความถี่เกี่ยวข้องสำหรับระบบ DSP ที่มีอัตราเบื้องต้นเป็น 44.1 กิโลเฮิร์ธ
+	  </para>
+	  
+	  <para id="p17">
+	    จากตัวสนองความถี่ที่ได้ทำการวิเคราะห์นั้น ให้ทำการวิเคราะห์ลักษณ์ของฟิวเตอร์ว่าเป็นชนิดใด (	วงจรกรอง low-pass  วงจรกรอง high-pass  หรือ วงจรกกรองแบบ band-pass) และณ.ที่ -6 เดซิเบล (half-amplitude) ความถี่คัทออฟ (หรือ ความถี่ต่างๆ) นี่อาจจะช่วยการตั้งค่าชนวนบนช่องที่สองของ oscilloscope เพราะว่าสัญญาณบนช่องที่หนึ่งอาจจะเข้าสู่ศูนย์ได้
+	  </para>
+	</section>
+
+	<section id="sec2c">
+	  <title>ขั้นที่ 5: การนำมาประกอบและประมวลผลใหม่ด้วยตัวกรองแบบใหม่</title>
+	  <para id="p18">
+	    เมิ่อทำการหาชนิดของตัวกรองเรียบร้อยแล้ว DSP จะทำการอิมพลีเม้นต์ และทำตามขั้นตอนข้างต้นซ้ำอีกครั้งกับตัวกรองและตัวสัมปสิทธิ์ที่ต่างกันออกไปขณะทำการแอสเซมบลี  สัมปสิทธิ์ที่ต่างกันในไฟล์ <code>coef2.asm</code>.  ทำสำเนาของ 
+	    <code>coef2.asm</code> และเปลี่ยนชื่อเป็น <code>coef.asm</code>.
+	  </para>
+	  <para id="p19">
+	    กระบวกการแอสเซมบลีและการทอสอบตัวกรองตัวใหม่นั้นสามารถทำตามการแนะนำการใช้ <code>asm</code> prompt และทำตามขั้นตอนซ้ำอีกครั้งโดยการประมวลผลด้วยโค้ดจากขั้นตอนที่4  <link target-id="sec2b">Step 4</link>.
+	  </para>
+	  <para id="p20a">
+	    จากนั้นให้ทำการหาชนิดของตัวกรองใหม่อย่างเช่นขั้นตอนที่4 <link target-id="sec2b">Step 4</link>,
+	    และค่าของตัวกรองณ. -6 เดซิเบลโดยการทอสอบระบบด้วยความถี่ที่ต่างกัน
+	  </para>
+	</section>
+	
+	<section id="sec2d">
+	  <title>ขั้นที่ 6: ตรวจสอบผลตอบสนองความถี่ด้วย MATLAB</title>
+	  <para id="p20b">
+	    ในขั้นตอนนี้เป็นการใช้ MATLAB เพื่อวิเคราะห์ ผลตอบสนองความถี่ของตัวกรองนั้นๆ ด้วยการทำสำเนาค่าสัมปสิทธิ์จาก DSP ไปยัง MATLAB และแสดงขนาดของผลตอบสนองความถี่โดนการใช้คำสั่ง
+	    <code>freqz</code> ใน MATLAB 
+	  </para>
+	  <para id="p21">
+	    ไฟล์ 
+	    <code>coef.asm</code> จะทำการเก็บสัมปสิทธิ์ของวงจรกรองแบบที่มีผลตอบสนองอิมพัลส์จำกัดนั้นซึ่งจะบันทึกในหน่วยความจำบน DSP
+	    เริ่มจากตำแหน่ง (ฐานสิบหก) <code>0x1000</code>และแต่ละตัวกรองที่ได้กระทำการแอสเซมบลีและประมวลผลแล้วจะมีสัมปสิทธิ์แปดตัว  ในการดูสัมปสิทธิ์ของตัวกรองในรูปแบบของจำนวนเต็มที่มีเครื่องหมายนั้นให้เลือกรายการ <code>Memory</code> จากรายการ 
+	    <code>View</code> เพื่อเปิดรายการ  <code>Memory Window
+	    Options</code> หลังจากนั้นให้เปลี่ยนค่าที่อยู่ตัวแปลเป็น <code>0x1000</code> และเปลี่ยนค่าเป็น 
+	    <code>16-Bit Signed Int</code>คลิ้ก OK เพื่อเปิดหน้าต่างหน่วยความจำที่แสดงค่าที่อยู่ของความจำต่างๆซึ่งจะแสดงอยู่ด้านซ้ายมือ
+	  </para>
+	  <para id="p22">ในตัวอย่างนี้สัมปสิทธิ์ตัวกรองจะอยู่บรรจุลงหน่วยความจำตามลำดับที่น้อยลงไปซึ่งก็หมายถึงตัวสัปสิทธิ์ตัวสุดท้ายซึ่งก็คือ 
+	    <m:math>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">h</m:ci>
+		<m:cn>7</m:cn>
+	      </m:apply>
+	    </m:math> จะอยู่ที่หน่วยความจำ <code>0x1000</code> และตัวสัปสิทธิ์ตัวแรกซึ่งก็คือ 
+	    <m:math>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">h</m:ci>
+		<m:cn>0</m:cn>
+	      </m:apply>
+	    </m:math> จะเก็บไว้ที่หน่วยความจำ <code>0x1007</code>.
+	  </para>
+	  <para id="p23">
+	    หลังจากเข้าใจการเก็บค่าสัมปสิทธิ์แล้วนั้นขั้นตอนต่อไปจะเป็นการใช้คำสั่ง <code>freqz</code> ใน MATLAB เพื่อจะดูการตอบสนองของตัวกรอง ในการใช้คำสั่งนี้ผู้ใช้ต้องสร้างเวคเตอร์ของสัมปสิทธิ์ขึ้นใน MATLAB  ตัวอย่างเช่นในกรณีวิเคราะห์ตัวกรองชนิด three-tap ที่มีค่าสัมปสิทธิ์ -10,20,-10 จะสามารถใช้คำสั่งทาง MATLAB ดังต่อไปนี้
+	    <list id="link2" list-type="bulleted">
+	      <item><code>h = [-10, 20, -10];</code></item>
+	      <item><code>plot(abs(freqz(h)))</code></item>
+	    </list>
+	  </para>
+	  <para id="p24">
+	    จะสังเกตุได้ว่าจะต้องมีการใส่ค่าลงไปถึงแปดค่า ตั้งแต่หน่วยความจำที่ <code>0x1000</code> ถึง
+	    <code>0x1007</code> ลงในค่าสัมปสิทธิ์ 
+	    <m:math>
+	      <m:ci>h</m:ci>
+	    </m:math>.
+	  </para>
+	  <para id="p25">
+	    ให้ตั้งข้อสังเกตุว่าเมื่อเทียบ ผลการตอบสนองจาก MATLAB กับผลการทดลองก่อนใช้ MATLAB นั้นเป็นอย่างไร สิ่งใดที่ทำให้ผลที่ได้รับต่างกัน
+	  </para>
+	</section>
+	
+	<section id="sec2e">
+	  <title>ขั้นที่ 7: การสร้างและการวิเคราห์ตัวกรองใหม่ใน MATLAB</title>
+	  <para id="p26">
+	    MATLAB script จะถูกเก็บไว้ให้สำหรับคนที่ต้องการนำไปใช้เป็นแนวทางในการพัฒนา code ต่างๆ ยกตัวอย่างเช่น script ที่ใช้ในการบันทึกค่า coefficient ที่ผ่านการกรองจาก MATLAB ให้อยู่ในรูปที่สามารถนำไปใช้ในขั้นตอนของ Assembly ได้ทันทีโดยไม่ต้องพิมพ์ข้อมูลเข้าไปใหม่ (จะเป็นประโยชน์อย่างมากสำหรับการทำ filter จำนวนมาก) Script บางส่วนจะถูกติดตั้งบนคอมพิวเตอร์ของคุณเรียบร้อยแล้ว และในบางส่วนคุณสามารถไปดาวน์โหลดได้จากลิงค์ที่แสดงไว้
+	  </para>
+	  <para id="p27">
+	    ในขั้นแรกให้ใช้ MATLAB สร้าง eight-tap filter   แบบสุ่มโดยพิมพ์คำสั่ง  <code>h = gen_filt;</code> จากนั้นให้ทำการบันทึกค่าเวคเตอร์ของสัมปสิทธิ์ตัวกรองด้วยการพิมพ์คำสั่ง
+	    <code>save_coef('coef.asm',flipud(h));</code>โดยอย่าลืมตรวจให้แน่ใจว่าไฟล์นั้นถูกบันทึกอยู่ที่ไดเรคทอรี่ของคุณ (script ที่กระทำฟังก์ชันดังกล่าวนั้นคือ <link resource="gen_filt.m">gen_filt.m</link> และ<link resource="save_coef.m">save_coef.m</link>.)
+	  </para>
+	  <para id="p28">
+	    Script ของ MATLAB จะทำการบันทึกค่าเวคเตอร์
+	    <m:math>
+	      <m:ci>h</m:ci>
+	    </m:math> ของ coefficient ในไฟล์ตามที่ตั้งชื่อไว้ ในกรณีนี้คือ
+	    <code>coef.asm</code>.  โปรดระวังว่าค่าของเวคเตอร์สัมปสิทธิ์ที่ถูกบันทึกนั้นจะถูกกลับลำดับ นั่นคือ ค่าของสัมปสิทธิ์
+	    <m:math>
+	      <m:ci>h</m:ci>
+	    </m:math> ที่อยู่ในหน่วยความจำของ DSP ตำแหน่งที่ <code>0x1000</code>
+	    จนถึง <code>0x1007</code> นั้นลำดับจะถูกลับ
+	  </para>
+	  <para id="p29">
+	    ตอนนี้คุณอาจจะลอง re-assembly และประมวลผลโค้ดที่ใช้ในการกรองใหม่ โดยทำตามขั้นตอนที่ 5<link target-id="sec2c">Step 5</link>.
+	  </para>
+	  <para id="p30">
+	    ให้สังเกตด้วยว่าในขณะที่คุณโหลดตัวกรอง ตัวใหม่เข้าไปนั้นหน่วยความจำในตำแหน่ง <code>0x1000</code> ถึง
+	    <code>0x1007</code> นั้นมีการเปลี่ยนแปลง
+	  </para>
+	</section>
+	<section id="sec2f">
+	  <title>ขั้นที่ 8: การปรับค่าสัมปสิทธิ์ในหน่วนความจำ</title>
+	  <para id="p31">
+	    ไม่เพียงคุณสามารถดูข้อมูลที่อยู่ในหน่วยความจำของ DSP ผ่านตัวดีบัก แต่คุณยังสามารถเปลี่ยนค่าที่อยู่ในหน่วยความจำนั้นได้อีกด้วย คุณสามารถทำได้โดยการ double-click ที่ตำแหน่งที่คุณต้องการ จากนั้นคุณก็สามารถทำการเปลี่ยนค่าได้จาก pop-up window
+	  </para>
+	  <para id="p32a">
+	    เปลี่ยนค่าที่อยู่ในหน่วยความจะตั้งแต่ตำแหน่ง 
+	    <code>0x1000</code> จนถึง <code>0x1007</code> เพื่อให้สอดคล้องกับตัวกรอง
+	    <equation id="eqn1">
+	      <m:math>
+		<m:apply>
+		  <m:eq/>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">h</m:ci>
+		    <m:ci>n</m:ci>
+		  </m:apply>
+		  <m:apply>
+		    <m:times/>
+		    <m:cn>8192</m:cn>
+		    <m:apply>
+		      <m:ci>δ</m:ci>
+		      <m:apply>
+			<m:minus/>
+			<m:ci>n</m:ci>
+			<m:cn>4</m:cn>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:math>
+	    </equation> กำหนดค่า scaled และ delayed version ให้กับอินพุท สังเกตว่า DSP จะทำการแปลความหมายค่าจำนวนเต็มของ 8192 ให้อยู่ในรูปของ fractional ด้วยการนำค่า integer ไปหารด้วย 32,768 (เป็นเลข integer ที่มีค่ามากที่สุดที่เป็นไปได้ใน 16-bit register แบบ two’s complement) ผลลัพธ์ที่ออกมาจะถูก delayed ด้วย 4 sample และ scaled ด้วยอัตราส่วน 
+	    <m:math>
+	      <m:cn type="rational">1<m:sep/>4</m:cn>
+	    </m:math>.  สามารถหาข้อมูลเพิ่มเติมในเรื่องการแปลงเลขของ DSP ได้จาก <link document="m10808">Two's
+	    Complement and Fractional Arithmetic for 16-bit
+	    Processors</link>.
+	  </para>
+	  <para id="p32b">
+	    หลังจากที่ทำการเปลี่ยนค่าสัมประสิทธิ์ครบทั้ง แปดตัวแล้ว ให้ทำการรัน filter ตัวใหม่ และให้ใช้ oscilloscope ในการวัดค่า delay ที่เกิดขึ้นระหว่างอินพุตและคลื่นผลลัพธ์ที่ผ่านการกรองแล้ว
+	  </para>
+	  <para id="p33">
+	    จะเกิดอะไรขึ้นกับผลลัพธ์ที่ได้ถ้าคุณทำการเปลี่ยนค่า scaling หรือ ค่า delay? สำหรับ six-sample delay นั้นมีความยาวกี่วินาที?
+	  </para>
+	</section>
+
+	<section id="sec2g">
+	  <title>ขั้นที่ 9: การจำลอง Test-vector</title>
+	  <para id="p34">
+	    ในแบบฝึกหัดสุดท้ายนี้ คุณจะได้ผลลัพธ์จาก DSP สำหรับค่าอินพุท ที่ถูกกำหนดโดย test vector จากนั้นจะทำการเปรียบเทียบผลลัพธ์ที่ได้จาก DSP กับผลลัพธ์ที่ได้จากการ ทำ MATLAB simulation ของ filter processing โดยใช้ อินพุทเดียวกัน ถ้า DSP ถูก implement อย่างถูกต้องผลลัพธ์ที่ได้จะใกล้เคียงหรืออาจจะเท่ากัน เพื่อที่จะทำการทดสอบดังกล่าว ให้คุณสร้างกราฟคลื่นขึ้นใน MATLAB จากนั้นให้บันทึกเป็น test vector  จากนั้นให้ทำการประมวลผล DSP filter โดยใช้ test vector ดังกล่าวเป็น input เมื่อเสร็จแล้วให้ทำการ import ผลลัพธ์เข้าไปใน MATLAB เพื่อเปรียบเทียบผล
+	  </para>
+	  <para id="p36">
+	    ขั้นตอนแรกในการใช้ test vector ก็คือการสร้างสัญญาณอินพุทที่เหมาะสม ทางหนึ่งที่สามารถทำได้คือ การใช้ฟังก์ชัน  <code>sweep</code> (available as <link resource="sweep.m">sweep.m</link>) ที่เคลื่อนที่ข้ามช่วงของความถี่ จากนั้นให้ใช้ฟังก์ชัน
+	    <code>save_test_vector</code> (available as <link resource="save_test_vector.m">save_test_vector.m</link> ให้ทำการบันทึกใส่ในไฟล์ที่จะนำไปใช้ต่อในส่วนของการทำ DSP
+	  </para>
+	  <para id="p36b">
+	    สร้าง sinusoid sweep และทำการบันทึกให้เป็น DSP test vector ไฟล์ด้วยคำสั่งต่อไปนี้:
+	  </para>
+	  <code id="id1171778863453" display="block">
+	    
+	    &gt;&gt; t=sweep(0.1*pi,0.9*pi,0.25,500);    % Generate a frequency sweep
+	    &gt;&gt; save_test_vector('testvect.asm',t); % Save the test vector
+	    
+	  </code>
+	  <para id="p37">
+	    จากนั้นให้ใช้คำสั่ง  <code>conv</code> ของ MATLAB ในการจำลองผลของการทำ filter sweep ด้วย filter 
+	    <m:math>
+	      <m:ci>h</m:ci>
+	    </m:math>
+	    ที่คุณสร้างขึ้นด้วยคำสั่ง <code>gen_filt</code> ก่อนหน้านี้ ให้สังเกตว่านี่เป็นขั้นตอนในการสร้างเวคเตอร์ที่มีขนาด  507 (โดยที่
+	    <m:math>
+	      <m:apply>
+		<m:minus/>
+		<m:apply>
+		  <m:plus/>
+		  <m:ci>n</m:ci>
+		  <m:ci>m</m:ci>
+		</m:apply>
+		<m:cn>1</m:cn>
+	      </m:apply>
+	    </m:math>, where 
+	    <m:math>
+	      <m:ci>n</m:ci>
+	    </m:math> คือ ขนาดของ filter และ
+	    <m:math>
+	      <m:ci>m</m:ci>
+	    </m:math> คือขนาดของ input)   คุณควรจะเก็บแค่ 500 element แรกในเวคเตอร์ผลลัพธ์
+	  </para>
+	  <code id="id1171782369572" display="block">
+	    
+	    &gt;&gt; out=conv(h,t)                       % Filter t with FIR filter h
+	    &gt;&gt; out=out(1:500)                      % Keep first 500 elements of out
+	    
+	  </code>
+	  <para id="p38">
+	    ในตอนนี้ให้ทำการแก้ไขในไฟล์ <code>filter.asm</code> เพื่อที่จะใช้ “test_vector” จาก core file <link resource="vectcore.asm">vectcore.asm</link>.  แทนที่จะรับข้อมูลจาก A/D converter แล้วส่งข้อมูลผลลัพธ์ไปให้ D/A Core file จะรับ input และบันทึก output ไปที่หน่วยความจำของ DSP โดยที่ test vector นั้นจะถูกเก็บอยู่ที่ evaluation board ของ DSP ซึ่งจะไม่ยุ่งเกี่ยวกับในส่วนของโปรแกรมและข้อมูลอื่น
+	    <note id="id1171769490719" type="Note"><label>Note</label>The test vector จะถูกเก็บอยู่ในส่วนของ 
+	    <code>.etext</code> สามารถหาข้อมูลเพิ่มเติมในส่วนของการแบ่งหน่วยความจำของ DSP รวมทั้งการทำ memory mapping ได้จาก <link document="m10513">Core File: Introduction to Six-Channel
+	    Board for TI EVM320C54</link> </note> ใน memory block ที่ใช้เก็บ test vector นั้นมีขนาดใหญ่พอที่จะเก็บเวคเตอร์ที่มีขนาดใหญ่ถึง 4000 element โดยจะเก็บtest vector ทั้งสำหรับอินพุทและ เอาท์พุททั้ง 6 channels
+	  </para>
+	  <para id="p40">
+	    ในการประมวลผลโปรแกรมสำหรับ test vector นี้ จะต้องไปทำการแก้ <code>filter.asm</code>.  โดย assembly source นั้นเป็นเพียง text ไฟล์ ที่คุณสามารถทำการ edit ได้โดยใช้ editor ตามที่คุณต้องการ เช่น WordPad, Emacs, และ VI โดยทำการแก้ที่บรรทัดแรกของไฟล์จาก 
+	  </para>
+	  <code id="codeblock1" display="block">
+	    
+	    .copy 	"core.asm"
+	    
+
+	  </code>
+	  <para id="para40b">
+	   ให้เป็น:
+	  </para>
+	  <code id="codeblock2" display="block">
+	    
+	    .copy 	"testvect.asm"
+	    .copy	"vectcore.asm"
+	    
+
+	  </code>
+	  <para id="para40c">
+	    ให้สังเกตว่าข้างหน้าของ 
+	    <code>.copy</code> นั้นจะต้องใส่ directive
+	  </para>
+	  <para id="para40d">
+	    การเปลี่ยนแปลงนี้จะส่งผลกับ test vector ที่คุณสร้างขึ้นและสามารถเลือกใช้ core ไฟล์ตามที่ต้องการ หลังจากที่ทำการแก้ไข code เสร็จเรียบร้อยแล้วให้ทำการ assemble , โหลด แล้วรันไฟล์โดยใช้ Code Composer เหมือนก่อนหน้านี้ หลังจากผ่านไป 2-3 วินาที ให้ทำการ หยุดการทำงานของ DSP (ใช้คำสั่ง <code>Halt</code> ที่อยู่ภายใต้
+	    <code>Debug</code> menu) จากนั้นให้ตรวจดูว่า DSP ได้หยุดทำงานที่ branch statement ที่ branch ไปที่ตัวของมันเอง จากหน้าจอ disassembly window บรรทัด: <code>0000:611F F073 B 611fh</code> จะถูก highlight
+	  </para>
+	  <para id="p41">
+	    จากนั้นให้ทำการบันทึก test output ไฟล์แล้วทำการโหลดกลับเข้าสู่ MATLAB ซึ่งสามารถทำได้โดยการบันทึก 3,000 memory element ( 6 channels คูณด้วย 500 samples) โดยเริ่มที่ตำแหน่ง <code>0x8000</code> iในหน่วยความจำของโปรแกรม ทำได้โดยเลือก <code>File-&gt;Data-&gt;Save...</code> ที่อยู่ใน Code Composer Studio ให้ใส่ชื่อไฟล์เป็น
+	    <code>output.dat</code> แล้วกด  <code>Enter</code>
+	    จากนั้นให้ใส่ค่า <code>0x8000</code> ในช่อง Address field ของ Dialog Box ที่แสดงขึ้น, ใส่  <code>3000</code> ในช่อง Length field ให้เลือก  <code>Program</code> จาก drop-down menu ถัดไปที่ <code>Page</code> ทุกครั้งที่ทำการบันทึกผลลัพธ์ต้องตรวจดูว่าได้ใส่ length ที่ถูกต้อง ( 6 คูณด้วยขนาดของ test vector)
+	  </para>
+	  <para id="p42">
+	    ขั้นสุดท้าย ให้ใช้คำสั่ง <code>read_vector</code> (available as <link resource="read_vector.m">read_vector.m</link>) เป็นคำสั่งที่ใช้ในการอ่านผลลัพธ์ที่บันทึกอยู่ใน MATLAB สามารถทำได้โดยพิมพ์คำสั่งต่อไปนี้:
+	  </para>
+	  <code id="id1171775445061" display="block">
+	    
+	    &gt;&gt; [ch1, ch2] = read_vector('output.dat');
+	    
+	  </code>
+	  <para id="p43">
+	    ตอนนี้ผลที่ได้คือ  <code>ch1</code> จะเป็นค่า test_vector ที่ผ่านการ filter ของ test signal ที่คุณสร้างขึ้น ในขณะที่  <code>ch2</code> นั้นควรจะใกล้เคียงหรือเหมือนกับ ch1 เป็นผลลัพธ์ที่ได้จาก DSP  <note id="id1171781061843" type="Note"><label>Note</label>การที่ <code>ch2</code> และ <code>ch1</code>ไม่เหมือนกันนั้นเป็นเพราะ quantization error ในการบันทึก test vector สำหรับ หน่วยความจำแบบ 16-bit</note>
+	  </para>
+	  <para id="p44">
+	    หลังจากที่ทำการโหลดผลลัพธ์ของการกรอง (calculated as
+	    <code>out</code> above) เพื่อทำการเปรียบเทียบผลกับ (in
+	    <code>ch1</code> from above). เรายังสามารถนำผลลัพธ์ที่ได้มาสร้างกราฟเพื่อดูเปรียบเทียบ ซึ่งสามารถทำได้ดังนี้:
+	  </para>
+	  <code id="id1171775143500" display="block">
+	    
+	    &gt;&gt; plot(out,'r'); % Plot the expected curve in red 
+	    &gt;&gt; hold on        % Plot the next plot on top of this one 
+	    &gt;&gt; plot(ch1,'g'); % Plot the expected curve in green 
+	    &gt;&gt; hold off 
+	    
+	  </code>
+	  <para id="p47">
+	    คุณจะต้องตรวจให้แน่ใจว่าผลลัพธ์ทั้งสองนั้นต่างกันเกือบเป็นศูนย์ ซึ่งสามารถทำได้ด้วยการสร้างกราฟผลต่างของทั้งสองเวคเตอร์:
+	  </para>
+	  <code id="id1171769448969" display="block">
+	    
+	    &gt;&gt; plot(out-ch1); % Plot error signal 
+	    
+	  </code>
+	  <para id="p48">
+	    Yคุณจะพบว่าผลลัพธ์ทั้งสองออกมาต่างกันก็เพราะ DSP ใช้ 16-bit precision ในการคำนวณ ในขณะที่ MATLAB ใช้ 64-bit floating point numbers for its arithmetic
+	  </para>
+	  <para id="p49">
+	    ให้สังเกตว่าการเปรียบเทียบสองเวคเตอร์ด้วยวิธีนี้นั้น เวคเตอร์ทั้งสองควรจะมีขนาดเท่ากันซึ่งสามารถกำหนดได้จากคำสั่งใน MATLAB  <code>out=out(1:500)</code>
+	    above.
+	  </para>
+	</section>
+      </section>
+    </content>
+  </document>

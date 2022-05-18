@@ -1,0 +1,65 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Multirate Filtering: Implementation on TI TMS320C54x (日本語 - Japanese)</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>475da9a0-abeb-4f27-ae19-19c367704c78</md:uuid>
+</metadata>
+
+
+
+
+
+
+  <content>
+    <section id="sec3">
+      <title>インプリメンテーション</title>
+      <para id="p10">
+   <link document="m10024" target-id="fig1">Multirate Processing:
+	Introduction</link>で示した全システムを実行する前に、サンプルレートコンプレッサーまたはエクスパンダー無しで、FIR1とFIR2と縦続したフィルターからなるシステムをデザインする事をお勧めします。その２つのフィルターシステムのレスポンスが正しい事を実証した後、完成したマルチレートシステムを実行し始め、全レスポンスを実証しなさい。初めに、
+<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>D</m:ci>
+	    <m:ci>U</m:ci>
+	    <m:cn>4</m:cn>
+	  </m:apply>
+	</m:math>という一定の圧縮因子と拡張因子を使いなさい。その後、この因子をMATLABインターフェースを使って制御します。コードを書く際、この事を覚えておいて下さい。
+      </para>
+
+      <section id="sec3a">
+	<title>圧縮レート処理</title>
+	<para id="p12">
+	  低サンプルレートで処理を行うために、コード中にカウンター（計数回路）を実行してください。カウンターはいつ圧縮レート処理が生じるかを決定し、またいつサンプルレートエクスパンダーを実行するためにFIR3の中にゼロを挿入するかを決定するためにも使えます。
+	</para>
+
+	<para id="p13">
+	  マルチレート構造を実行するために役に立つ命令のいくつかは、<code>addm</code>(add to memory:メモリーに加える）と<code>bc</code>(branch conditional:分岐条件）命令です。また、<code>banz</code>(branch on auxiliary register not zero:補助レジスタが0以外なら分岐）や<code>b</code>(branch:分岐）指示も役に立つでしょう。
+	</para>
+
+      </section>
+
+      <section id="sec3b">
+	<title>実時間レート変化とMATLABインターフェース</title>
+	<para id="p16">
+	  簡単なグラフィカルユーザーインターフェース（ＧＵＩ）は、シリアルポート経由でＤＳＰに１から１０の数を送る事が（<link resource="ser_snd.m">ser_snd.m</link>を要する<link resource="mrategui.m">mrategui.m</link>として）可能です。これは実時間に圧縮因子と拡張因子を変換するために使えます。
+	</para>
+	<para id="p18">
+MATLABのプロンプトに<code>mrategui</code>と打ちこみ、ＧＵＩを起動しなさい。図が自動的にスライダと共に開きます。　スライダを調節すると、ＤＳＰに送られた圧縮因子と拡張因子が変わります。
+	</para>
+
+	<para id="p17">
+	  与えられたアセンブリコードは、ＤＳＰが<code>hold</code>と名づけられたメモリー中のコンピューターから受け取っている最後の数を保存します。そのため、あなたがその与えられたコードの連続部を変えない限り、この場所においては、ＧＵＩによってセットされた最後の圧縮因子と拡張因子を見つけられます。シリアルポートに新しい数が受信される度に、圧縮と拡張因子が変換されるためには、コードの修正が必要です。もし"１"がシリアルポートに受信されたら、その全システムは最大限のレートで稼動します。またもし"１０"が受信されたら、そのシステムは低レートで処理された各サンプル間で９つのサンプルを捨てます。
+
+	</para>
+	<para id="p14">
+	  シリアルポートからのデータ読み取りと、シリアルポートへのデータ送信に使用される<code>READSER</code>と<code>WRITSER</code>マクロが、<code>BK</code>とコンディションフラッグ<code>TC</code>と同程度に、<code>AR0</code>、<code>AR1</code>、<code>AR2</code>、そして<code>AR3</code>レジスタを上書きする点に注意して下さい。そのため、これらのレジスタがあなたのコードに使われていないか、又は<code>READSER</code>と<code>WRITSER</code>マクロをコールする前に、メモリにそれらの値を保存または復活させているかを確認しなければなりません。これは<code>mvdm</code>と<code>mvmd</code>の命令を使用して行うことができます。そのシリアルマクロはコールされる毎に<code>AR1</code>と<code>AR3</code>をセットアップするので、そのマクロをコールする前にそれらのレジスタを変える必要はありません。
+
+	</para>
+
+	<para id="p15">
+<code>READSER</code>と<code>WRITSER</code>マクロに関する詳細は <link document="m10821">Core File: Serial Port Communication
+	  Between MATLAB and TI TMS320C54x</link>にあります。
+	</para>
+
+      </section>
+    </section>
+  </content>
+</document>

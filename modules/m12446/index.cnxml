@@ -1,0 +1,85 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>Lab 2: Theory</title>
+  <metadata>
+  <md:content-id>m12446</md:content-id><md:title>Lab 2: Theory</md:title>
+  <md:abstract>A sample-rate compressor removes (D-1) of every D input samples.  A sample-rate expander inserts (U-1) zeros after every input sample.  </md:abstract>
+  <md:uuid>64ff7b27-2007-4fed-8db1-0edf06f7673a</md:uuid>
+</metadata>
+
+<content>
+    <section id="sec1">
+      <title>引言</title>
+      <para id="p1">
+	在下面的练习中，你将研究多频采样滤波（<term>multirate processing</term>）效应（使用如 <link target-id="fig1"/> 所示的系统）。框图所示的采样率压缩器（<term>sample-rate
+	  compressor</term> 
+	(<m:math>
+	  <m:apply>
+	    <m:mo>↓</m:mo>
+	    <m:ci>D</m:ci>
+	  </m:apply>
+	</m:math>)） 会去掉每 
+	<m:math>
+	  <m:ci>D</m:ci>
+	</m:math> 个输入采样中的
+	<m:math>
+	  <m:apply>
+	    <m:minus/>
+	    <m:ci>D</m:ci>
+	    <m:cn>1</m:cn>
+	  </m:apply>
+	</m:math> 个，而采样率扩展器 （<term>sample-rate
+	  expander</term> 
+	(<m:math>
+	  <m:apply>
+	    <m:mo>↑</m:mo>
+	    <m:ci>U</m:ci>
+	  </m:apply>
+	</m:math>)）则在每个采样后加入 
+	<m:math>
+	  <m:apply>
+	    <m:minus/>
+	    <m:ci>U</m:ci>
+	    <m:cn>1</m:cn>
+	  </m:apply>
+	</m:math> 个0。将压缩和扩展参数设成相同的数值（
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>D</m:ci>
+	    <m:ci>U</m:ci>
+	  </m:apply>
+	</m:math>），滤波器 FIR 1 和 FIR 3 将工作在采样率
+	<m:math>
+	  <m:ci><m:msub> 
+	      <m:mi>F</m:mi> 
+	      <m:mi>s</m:mi>
+	    </m:msub></m:ci> 
+	</m:math>下，而滤波器 FIR 2 则工作在较低的采样率
+	<m:math>
+	  <m:apply>
+	    <m:divide/>
+	    <m:ci><m:msub>
+		<m:mi>F</m:mi>
+		<m:mi>s</m:mi>
+	      </m:msub></m:ci>
+	    <m:ci>D</m:ci>
+	  </m:apply>
+	</m:math>下。
+      </para>
+
+      <figure id="fig1">
+	<media id="id4794857" alt="">
+          <image src="../../media/multirate_sys.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/multirate_sys.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>多频采样系统</caption>
+      </figure>
+
+      <para id="p2">
+	接下来，你将要运行该系统并在运行过程中通一个所提供的界面来控制压缩和扩展参数。你可以中止任一个或所有的滤波器来观察多频取样的效果。滤波器 FIR 1 和 FIR 3 的作用是什么？如果没有它们系统将会怎样？
+      </para>
+    </section>
+
+  </content>
+</document>
